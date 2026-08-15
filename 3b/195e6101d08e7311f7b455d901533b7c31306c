@@ -1,0 +1,102 @@
+packages/core/sdk/src/access-groups.ts
+  s_705c81be7ed9ad::t_f700fdd5df6d59 65-71
+  s_705c81be7ed9ad::t_5f50ca995a1d5e 1-64,72-83
+packages/core/sdk/src/core-schema.ts
+  s_705c81be7ed9ad::t_d163a3b8f56f15 270-275
+  s_705c81be7ed9ad::t_e7df7105a60bdc 471-472
+  s_705c81be7ed9ad::t_87fb7979e1ade3 200-229
+apps/cloud/src/api/layers.ts
+  s_705c81be7ed9ad::t_2cd576728625e0 19-20
+  s_705c81be7ed9ad::t_b7e57532c8533b 80-88
+apps/host-selfhost/src/admin/access-groups-handlers.ts
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 236
+  s_705c81be7ed9ad::t_6bb6f5a12c9456 6-12
+  s_705c81be7ed9ad::t_65f44db925b7cd 1-5,13-51,53-54,61-235,237-238
+  s_705c81be7ed9ad::t_9e2a16585e007b 52,55-60
+apps/host-selfhost/src/app.ts
+  s_705c81be7ed9ad::t_d697e0b63e345f 18
+  s_705c81be7ed9ad::t_8bb65e1386632d 137-139
+packages/core/sdk/src/ids.ts
+  s_705c81be7ed9ad::t_14cca0f3eeb35f 62-65
+apps/cloud/src/access-groups/handlers.ts
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 103-107,130-132,139-141
+  s_705c81be7ed9ad::t_747431523ccd1a 50,53-58
+  s_705c81be7ed9ad::t_e901a61bcb7972 1-4,12-49,51-52,59-102,108-129,133-138,142-203
+  s_705c81be7ed9ad::t_94962af0e80a4a 5-11
+packages/plugins/toolkits/src/server.ts
+  s_705c81be7ed9ad::t_994d22e4ef8a51 435-468,470-473
+packages/core/sdk/src/access-group-enforcement.test.ts
+  s_705c81be7ed9ad::t_4b7915a460fc82 1-126,130-149,153-214,216-312,316-321,323-328
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 127-129,150-152,215
+  s_705c81be7ed9ad::t_80e3a5560dbf78 313-315,322
+packages/core/sdk/src/index.ts
+  s_705c81be7ed9ad::t_90524b1c60c6bf 151-152
+  s_705c81be7ed9ad::t_78223ba5f74328 55
+  s_705c81be7ed9ad::t_da04fdd81cf50a 198-212
+apps/cloud/src/api/router.ts
+  s_705c81be7ed9ad::t_f27738a63d3a7b 16
+  s_705c81be7ed9ad::t_c028f6bd37ac2c 40
+apps/host-selfhost/src/admin/access-groups-api.ts
+  s_705c81be7ed9ad::t_74b29a2d57a5ce 1-186
+apps/cloud/src/db/executor-schema.ts
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 52-84,104
+apps/cloud/src/access-groups/api.ts
+  s_705c81be7ed9ad::t_6983283563b289 1-172
+packages/core/sdk/src/access-groups.test.ts
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 45,81-84,161
+  s_705c81be7ed9ad::t_df122c340d9ebe 1-44,46-80,85-160,162-224
+apps/host-selfhost/src/admin/access-groups.node.test.ts
+  s_705c81be7ed9ad::t_507d42a22f684c 1-147
+packages/plugins/toolkits/src/server.test.ts
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 46
+  s_705c81be7ed9ad::t_e6ead3a92677ab 118-167
+  s_705c81be7ed9ad::t_71b6528a6dd758 1-4,7-17,21-45,47-72,77,79
+apps/cloud/drizzle/0016_nifty_tarot.sql
+  s_705c81be7ed9ad::t_a2b0809c5d7ae1 1-20
+apps/cloud/src/access-groups/handlers.test.ts
+  s_705c81be7ed9ad::t_fdb36ca47dabe2 2,96,103,110
+  s_705c81be7ed9ad::t_5e8b58ac546700 1,3-95,97-102,104-109,111,113-115
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 112
+packages/core/sdk/src/executor.ts
+  s_705c81be7ed9ad::t_27a3b3111985ac 3164
+  s_705c81be7ed9ad::t_2ade8570805f17 3606-3676,3682-3688,3694-3700
+  s_705c81be7ed9ad::t_878688be1d5dba 5435-5446
+  s_705c81be7ed9ad::t_1b5839fe46b616 403-415,417-431
+  s_705c81be7ed9ad::t_835ccc6e2a6ee0 3358
+  s_705c81be7ed9ad::t_af3317162bfe3b 3677-3681,3689-3693
+  s_705c81be7ed9ad::t_e0000ff79355d3 3105-3111
+  s_705c81be7ed9ad::t_a0a8ce5fb89184 416,4328-4330,4401
+  s_705c81be7ed9ad::t_7c76ccc1637bef 3701-3731
+  s_705c81be7ed9ad::t_f6edfc69a192eb 3128
+  s_705c81be7ed9ad::t_3bdae73eea9bb9 3961,3966-3969
+  s_705c81be7ed9ad::t_4806f14a565e37 3213
+  s_705c81be7ed9ad::t_84d0b5f61db690 3877-3881,3884
+  s_705c81be7ed9ad::t_0def4af9436d5d 3962-3965,3970-3973
+  s_705c81be7ed9ad::t_497b068e3ac382 3135
+  s_705c81be7ed9ad::t_2cd82a10e40a25 3605,4243-4327,4331-4400,4402-4478
+  s_705c81be7ed9ad::t_f0a22ec3b646f6 5114
+  s_705c81be7ed9ad::t_736052bf8eac24 4865
+  s_705c81be7ed9ad::t_24e996c9a372cf 82-95
+  s_705c81be7ed9ad::t_55b1c52a4f851a 4790-4811
+  s_705c81be7ed9ad::t_a7729a790fe764 402
+apps/cloud/drizzle/meta/0016_snapshot.json
+  s_705c81be7ed9ad::t_f643f1d9085d8f 1-1634
+apps/cloud/drizzle/meta/_journal.json
+  s_705c81be7ed9ad::t_1253ec8e17c8c0 116-122
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "3b195e6101d08e7311f7b455d901533b7c31306c",
+  "prompts": {},
+  "sessions": {
+    "s_705c81be7ed9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7f7163e-575d-406f-a25d-943097f562b0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
