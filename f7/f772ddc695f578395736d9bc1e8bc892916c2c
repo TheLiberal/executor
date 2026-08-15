@@ -1,0 +1,57 @@
+apps/cloud/src/access-groups/handlers.ts
+  s_705c81be7ed9ad::t_ad47431d950eb0 63-85,87-89,92,98-113
+  s_705c81be7ed9ad::t_091fc92b9c106f 171-189
+  s_705c81be7ed9ad::t_e72e47778186cf 259-286,288-289
+  s_705c81be7ed9ad::t_ecb42df0b6ea3a 15
+  s_705c81be7ed9ad::t_de5329e2a43955 114,287
+packages/core/sdk/src/plugin.ts
+  s_705c81be7ed9ad::t_c45c1691de5062 201-209
+apps/host-selfhost/src/admin/access-groups.node.test.ts
+  s_705c81be7ed9ad::t_78a120fd25e024 140-169,173-194,206-207
+  s_705c81be7ed9ad::t_e4ea933bbf380a 170-172,202-205
+  s_705c81be7ed9ad::t_3a9ffb9bfffa89 195-201
+packages/plugins/toolkits/src/server.test.ts
+  s_705c81be7ed9ad::t_ef577dcc585c4b 168-204,208-232,236-256
+  s_705c81be7ed9ad::t_e4ea933bbf380a 205-207,233-235
+packages/plugins/toolkits/src/server.ts
+  s_705c81be7ed9ad::t_b93e68a0e2a6d8 29-35
+  s_705c81be7ed9ad::t_e4ea933bbf380a 259-268,270
+  s_705c81be7ed9ad::t_de3f88464c46a4 677-678
+  s_705c81be7ed9ad::t_5f7ba357cd0ed8 240-258,271-286,291-296,299-339
+apps/host-selfhost/src/admin/access-groups-handlers.ts
+  s_705c81be7ed9ad::t_f5db6228c6ebd4 266-293,295-296
+  s_705c81be7ed9ad::t_9a0a55d4118eaa 18
+  s_705c81be7ed9ad::t_d1ef1612994ffb 65-87,89-93,97-101,107-122
+  s_705c81be7ed9ad::t_b0755288fe5bd2 178-196
+  s_705c81be7ed9ad::t_808048f0fafad6 123,294
+apps/cloud/src/access-groups/api.ts
+  s_705c81be7ed9ad::t_491d7dad2a2f7a 58-63
+  s_705c81be7ed9ad::t_26186721b3c8d5 78,98-102,106
+  s_705c81be7ed9ad::t_ccac421b31263d 184-203
+  s_705c81be7ed9ad::t_97daa6ed35ff12 76-77
+  s_705c81be7ed9ad::t_bb0fa3d29d5b35 79,204-207
+apps/host-selfhost/src/admin/access-groups-api.ts
+  s_705c81be7ed9ad::t_bc983f95822791 63-68
+  s_705c81be7ed9ad::t_d98efcabd9ec5f 83,103-107,111
+  s_705c81be7ed9ad::t_20628aa440381f 81-82
+  s_705c81be7ed9ad::t_916dedeb539cd9 196-215
+  s_705c81be7ed9ad::t_b1b53d6bd0f43b 84,216-219
+packages/core/sdk/src/executor.ts
+  s_705c81be7ed9ad::t_09d6373b3dde66 5105-5107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f7f772ddc695f578395736d9bc1e8bc892916c2c",
+  "prompts": {},
+  "sessions": {
+    "s_705c81be7ed9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7f7163e-575d-406f-a25d-943097f562b0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
