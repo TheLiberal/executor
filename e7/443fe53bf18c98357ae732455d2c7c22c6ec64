@@ -1,0 +1,69 @@
+apps/host-selfhost/src/admin/access-groups-handlers.ts
+  s_705c81be7ed9ad::t_5ac971bb4834c8 20-26
+apps/host-selfhost/web/routeTree.gen.ts
+  s_705c81be7ed9ad::t_11a355aee56e76 21,83-88,155,175,196,218,238,258,279,361-367,459-460
+packages/core/api/src/account/org-slug.ts
+  s_705c81be7ed9ad::t_ca4073c71bbb8e 51
+apps/cloud/src/api/layers.ts
+  s_705c81be7ed9ad::t_261a84d86a9436 19
+apps/cloud/src/extensions/routes.ts
+  s_705c81be7ed9ad::t_524ad1e084d25c 115-123,128
+  s_705c81be7ed9ad::t_5f66e4a762c3c1 42
+  s_705c81be7ed9ad::t_22c5f981c84b92 27
+  s_705c81be7ed9ad::t_51da8bfaccf081 63
+apps/cloud/src/routeTree.gen.ts
+  s_705c81be7ed9ad::t_4d661584293067 25,105-110,168,191,215,240,263,286,310,421-427,514-515,546,548,552,554
+packages/react/src/routes/access-groups.tsx
+  s_705c81be7ed9ad::t_36aed3ff8d9cbe 1-7
+packages/app/tsr.routes.ts
+  s_705c81be7ed9ad::t_44095efb4f788d 18
+apps/host-selfhost/web/routes/__root.tsx
+  s_705c81be7ed9ad::t_ed4bd3c28a71de 63-66
+packages/react/src/api/access-groups-atoms.tsx
+  s_705c81be7ed9ad::t_3b5174e3f14505 1-73
+packages/react/src/routes/routeTree.gen.ts
+  s_705c81be7ed9ad::t_b9b6832ef309f0 19,63-67,111,128,146,165,182,199,217,283-289,367
+packages/core/api/src/index.ts
+  s_705c81be7ed9ad::t_3c443d84e6e3a1 81-100
+  s_705c81be7ed9ad::t_c7006b595e8c6b 80
+packages/react/src/pages/access-groups.tsx
+  s_705c81be7ed9ad::t_ce1071227fecf5 648
+  s_705c81be7ed9ad::t_2b13ee3e96a36f 173
+  s_705c81be7ed9ad::t_349acad8e274f4 1-172,174-647,649-742
+packages/core/api/src/admin/access-groups-api.ts
+  s_705c81be7ed9ad::t_1d334c0e0fa01f 1-242
+packages/react/src/api/access-groups-client.tsx
+  s_705c81be7ed9ad::t_9f0263210f1e09 1-45
+packages/react/src/console-routes.ts
+  s_705c81be7ed9ad::t_a8990808ff77f5 89-91
+  s_705c81be7ed9ad::t_47ace163bac9ea 44
+apps/host-cloudflare/tsr.routes.ts
+  s_705c81be7ed9ad::t_2b13ee3e96a36f 18-21
+apps/cloud/src/access-groups/handlers.ts
+  s_705c81be7ed9ad::t_6666fc532556f6 18-22
+  s_705c81be7ed9ad::t_8929bf3e2a4b38 42-46
+packages/core/api/src/client.ts
+  s_705c81be7ed9ad::t_3c443d84e6e3a1 30-50
+apps/cloud/src/access-groups/handlers.test.ts
+  s_705c81be7ed9ad::t_c2de3a409107c7 5
+apps/cloud/src/web/shell.tsx
+  s_705c81be7ed9ad::t_244b089c78a450 33-36
+packages/react/src/api/reactivity-keys.tsx
+  s_705c81be7ed9ad::t_639b795b6508aa 48-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "e7443fe53bf18c98357ae732455d2c7c22c6ec64",
+  "prompts": {},
+  "sessions": {
+    "s_705c81be7ed9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7f7163e-575d-406f-a25d-943097f562b0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
