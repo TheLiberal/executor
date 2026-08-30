@@ -609,6 +609,10 @@ export interface IntegrationPreset {
   readonly url?: string;
   readonly endpoint?: string;
   readonly icon?: string;
+  /** Image to show when `icon` cannot be resolved on this machine — a preset
+   *  whose icon is read from a local install has none until that install
+   *  exists, which is exactly when the card most needs to identify itself. */
+  readonly fallbackIcon?: string;
   readonly featured?: boolean;
   readonly family?: string;
   readonly specFormat?: string;
@@ -617,6 +621,10 @@ export interface IntegrationPreset {
   readonly specOverrides?: readonly unknown[];
   readonly authTemplate?: readonly IntegrationPresetAuthentication[];
   readonly healthCheck?: HealthCheckSpec;
+  /** The public registry lists this product: the picker shows the registry's
+   *  card, and the preset's knowledge rides quick add instead. A custom
+   *  deployment preset leaves this unset and keeps its own card. */
+  readonly registryListed?: boolean;
   readonly transport?: "remote" | "stdio";
   readonly command?: string;
   readonly args?: readonly string[];
