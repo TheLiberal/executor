@@ -146,43 +146,99 @@ describe("executor.accessGroups", () => {
     }),
   );
 
-  it.effect("restricts and unrestricts an org connection", () =>
+  it.effect("sets, replaces, and clears an org connection's grant set", () =>
     Effect.gen(function* () {
       const executor = yield* setupExecutor();
-      const group = yield* executor.accessGroups.create({ name: "finance" });
+      const finance = yield* executor.accessGroups.create({ name: "finance" });
+      const execs = yield* executor.accessGroups.create({ name: "execs" });
 
       expect(yield* executor.accessGroups.restrictions()).toEqual([]);
-      yield* executor.accessGroups.restrictConnection({
+      yield* executor.accessGroups.setConnectionGroups({
         integration: VERCEL,
         name: CONN,
-        group: group.id,
+        groups: [finance.id],
+      });
+      expect(yield* executor.accessGroups.restrictions()).toEqual([
+        { integration: VERCEL, name: CONN, groups: [finance.id] },
+      ]);
+
+      // Replace-all: duplicates collapse, order is canonical, one row per
+      // connection in the report.
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [execs.id, finance.id, execs.id],
       });
       const restrictions = yield* executor.accessGroups.restrictions();
-      expect(restrictions).toEqual([{ integration: VERCEL, name: CONN, group: group.id }]);
+      expect(restrictions).toHaveLength(1);
+      expect([...restrictions[0]!.groups].sort()).toEqual([execs.id, finance.id].sort());
 
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [execs.id],
+      });
+      expect(yield* executor.accessGroups.restrictions()).toEqual([
+        { integration: VERCEL, name: CONN, groups: [execs.id] },
+      ]);
+
+      // Empty set and unrestrictConnection are the same operation.
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [],
+      });
+      expect(yield* executor.accessGroups.restrictions()).toEqual([]);
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [finance.id],
+      });
       yield* executor.accessGroups.unrestrictConnection({ integration: VERCEL, name: CONN });
       expect(yield* executor.accessGroups.restrictions()).toEqual([]);
+    }),
+  );
+
+  it.effect("removing the connection drops its grants", () =>
+    Effect.gen(function* () {
+      const executor = yield* setupExecutor();
+      const finance = yield* executor.accessGroups.create({ name: "finance" });
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [finance.id],
+      });
+      // The bound test subject must be a member to reach the connection at
+      // all (restricted ≡ nonexistent for outsiders, remove included).
+      yield* executor.accessGroups.addMember({ id: finance.id, subject: "test-subject" });
+      yield* executor.connections.remove({ owner: "org", integration: VERCEL, name: CONN });
+      expect(yield* executor.accessGroups.restrictions()).toEqual([]);
+      // ...and the group is deletable again: no dangling grant blocks it.
+      yield* executor.accessGroups.remove({ id: finance.id });
     }),
   );
 
   it.effect("rejects restricting to an unknown group and restricting a missing connection", () =>
     Effect.gen(function* () {
       const executor = yield* setupExecutor();
+      const group = yield* executor.accessGroups.create({ name: "finance" });
+      // One unknown group in the list rejects the whole write atomically:
+      // the known group is NOT granted either.
       const unknownGroup = yield* Effect.flip(
-        executor.accessGroups.restrictConnection({
+        executor.accessGroups.setConnectionGroups({
           integration: VERCEL,
           name: CONN,
-          group: "grp_missing",
+          groups: [group.id, "grp_missing"],
         }),
       );
       expect(Predicate.isTagged("StorageError")(unknownGroup)).toBe(true);
+      expect(yield* executor.accessGroups.restrictions()).toEqual([]);
 
-      const group = yield* executor.accessGroups.create({ name: "finance" });
       const missingConnection = yield* Effect.flip(
-        executor.accessGroups.restrictConnection({
+        executor.accessGroups.setConnectionGroups({
           integration: VERCEL,
           name: ConnectionName.make("missing"),
-          group: group.id,
+          groups: [group.id],
         }),
       );
       expect(Predicate.isTagged("ConnectionNotFoundError")(missingConnection)).toBe(true);
@@ -201,10 +257,11 @@ describe("executor.accessGroups", () => {
       const executor = yield* setupExecutor();
       const group = yield* executor.accessGroups.create({ name: "finance" });
       yield* executor.accessGroups.addMember({ id: group.id, subject: "user_a" });
-      yield* executor.accessGroups.restrictConnection({
+      const other = yield* executor.accessGroups.create({ name: "execs" });
+      yield* executor.accessGroups.setConnectionGroups({
         integration: VERCEL,
         name: CONN,
-        group: group.id,
+        groups: [group.id, other.id],
       });
 
       // A dangling group reference would silently hide the connection from
@@ -213,9 +270,20 @@ describe("executor.accessGroups", () => {
       expect(Predicate.isTagged("StorageError")(blocked)).toBe(true);
       expect(yield* executor.accessGroups.restrictions()).toHaveLength(1);
 
-      yield* executor.accessGroups.unrestrictConnection({ integration: VERCEL, name: CONN });
+      // Dropping just this group from the grant set is enough — the other
+      // group's grant keeps the connection restricted and is untouched.
+      yield* executor.accessGroups.setConnectionGroups({
+        integration: VERCEL,
+        name: CONN,
+        groups: [other.id],
+      });
       yield* executor.accessGroups.remove({ id: group.id });
-      expect(yield* executor.accessGroups.list()).toEqual([]);
+      expect((yield* executor.accessGroups.list()).map((candidate) => candidate.id)).toEqual([
+        other.id,
+      ]);
+      expect(yield* executor.accessGroups.restrictions()).toEqual([
+        { integration: VERCEL, name: CONN, groups: [other.id] },
+      ]);
       // Member rows are gone with the group.
       const membersError = yield* Effect.flip(executor.accessGroups.members(group.id));
       expect(Predicate.isTagged("StorageError")(membersError)).toBe(true);

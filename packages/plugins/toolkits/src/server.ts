@@ -26,12 +26,17 @@ const ToolkitRecord = Schema.Struct({
   id: Schema.String,
   slug: Schema.String,
   name: Schema.String,
-  // Access-group grant: when set, the toolkit exists ONLY for members of
-  // that group — its slug resolves to nothing (session block-all) and its
-  // CRUD reads answer not-found, the same restricted-is-invisible rule core
-  // applies to connections. Absent/null = unrestricted (every pre-existing
-  // record). Managed exclusively through `setAccessGroup` on the extension,
-  // which hosts expose behind their admin planes.
+  // Access-group grants: when non-empty, the toolkit exists ONLY for members
+  // of ANY listed group (OR semantics) — its slug resolves to nothing
+  // (session block-all) and its CRUD reads answer not-found, the same
+  // restricted-is-invisible rule core applies to connections. Absent/empty =
+  // unrestricted (every pre-existing record). Managed exclusively through
+  // `setAccessGroups` on the extension, which hosts expose behind their
+  // admin planes.
+  accessGroups: Schema.optional(Schema.Array(Schema.String)),
+  // Legacy single-valued grant from before multi-group support. Read as a
+  // one-element `accessGroups` when that field is absent; cleared on the
+  // next `setAccessGroups` write. Never written any more.
   accessGroup: Schema.optional(Schema.NullOr(Schema.String)),
   createdAt: Schema.Number,
   updatedAt: Schema.Number,
@@ -243,29 +248,36 @@ const makeToolkitsExtension = (ctx: PluginCtx<ToolkitStorage>) => {
   // CRUD reads answer "Toolkit not found." — the restricted-is-invisible
   // rule core applies to connections, with the same no-oracle discipline.
   // Membership is read live per call via the core seam.
+  const grantsOf = (
+    record: Pick<ToolkitRecord, "accessGroup" | "accessGroups">,
+  ): readonly string[] =>
+    record.accessGroups ?? (record.accessGroup != null ? [record.accessGroup] : []);
+
+  const grantsAllow = (groups: ReadonlySet<string> | null, grants: readonly string[]) =>
+    groups === null || grants.length === 0 || grants.some((grant) => groups.has(grant));
+
   const toolkitVisible = (
-    record: Pick<ToolkitRecord, "accessGroup">,
-  ): Effect.Effect<boolean, StorageFailure> =>
-    record.accessGroup == null
+    record: Pick<ToolkitRecord, "accessGroup" | "accessGroups">,
+  ): Effect.Effect<boolean, StorageFailure> => {
+    const grants = grantsOf(record);
+    return grants.length === 0
       ? Effect.succeed(true)
       : ctx.core.accessGroups
           .visibleGroupIds()
-          .pipe(Effect.map((groups) => groups === null || groups.has(String(record.accessGroup))));
+          .pipe(Effect.map((groups) => grantsAllow(groups, grants)));
+  };
 
   const filterVisibleToolkits = <T extends { readonly data: ToolkitRecord }>(
     entries: readonly T[],
   ): Effect.Effect<readonly T[], StorageFailure> =>
-    entries.some((entry) => entry.data.accessGroup != null)
+    entries.some((entry) => grantsOf(entry.data).length > 0)
       ? ctx.core.accessGroups
           .visibleGroupIds()
           .pipe(
             Effect.map((groups) =>
               groups === null
                 ? entries
-                : entries.filter(
-                    (entry) =>
-                      entry.data.accessGroup == null || groups.has(String(entry.data.accessGroup)),
-                  ),
+                : entries.filter((entry) => grantsAllow(groups, grantsOf(entry.data))),
             ),
           )
       : Effect.succeed(entries);
@@ -310,7 +322,10 @@ const makeToolkitsExtension = (ctx: PluginCtx<ToolkitStorage>) => {
   // a member of; their runtime view stays filtered like everyone's.
   // ------------------------------------------------------------------
 
-  const setAccessGroup = (toolkitId: string, accessGroup: string | null) =>
+  /** REPLACES the toolkit's grant set (empty = unrestricted). The legacy
+   *  single-valued field is cleared on every write. Group existence is the
+   *  host admin plane's check — this plugin cannot read the group tables. */
+  const setAccessGroups = (toolkitId: string, accessGroups: readonly string[]) =>
     Effect.gen(function* () {
       const entry = yield* getEntry(toolkitId);
       if (!entry) return yield* fail("Toolkit not found.");
@@ -319,10 +334,13 @@ const makeToolkitsExtension = (ctx: PluginCtx<ToolkitStorage>) => {
         // restricting one is a category error, mirroring connections.
         return yield* fail("Only org-owned toolkits can be restricted.");
       }
+      const groups = [...new Set(accessGroups.map((group) => group.trim()))].filter(
+        (group) => group.length > 0,
+      );
       yield* storage.toolkits.put({
         owner: entry.owner,
         key: toolkitId,
-        data: { ...entry.data, accessGroup, updatedAt: Date.now() },
+        data: { ...entry.data, accessGroups: groups, accessGroup: null, updatedAt: Date.now() },
       });
     });
 
@@ -330,12 +348,12 @@ const makeToolkitsExtension = (ctx: PluginCtx<ToolkitStorage>) => {
     storage.toolkits.query({}).pipe(
       Effect.map((entries) =>
         entries
-          .filter((entry) => entry.data.accessGroup != null)
           .map((entry) => ({
             toolkitId: entry.data.id,
             slug: entry.data.slug,
-            group: String(entry.data.accessGroup),
-          })),
+            groups: grantsOf(entry.data),
+          }))
+          .filter((entry) => entry.groups.length > 0),
       ),
     );
 
@@ -674,7 +692,7 @@ const makeToolkitsExtension = (ctx: PluginCtx<ToolkitStorage>) => {
     policyRulesForSlug,
     resolvePolicyForSlug,
     preparePolicyResolverForSlug,
-    setAccessGroup,
+    setAccessGroups,
     listRestrictedToolkits,
   };
 };

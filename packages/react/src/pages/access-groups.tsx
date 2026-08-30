@@ -19,12 +19,14 @@ import {
   removeAccessGroupMember,
   renameAccessGroup,
   restrictConnectionToGroup,
+  restrictToolkitToGroup,
   unrestrictConnectionFromGroup,
   unrestrictToolkitFromGroup,
 } from "../api/access-groups-atoms";
 import { connectionsAtom } from "../api/atoms";
 import { orgMembersAtom } from "../api/account-atoms";
 import { messageFromExit } from "../api/error-reporting";
+import { AccessGroupPicker } from "../components/access-group-picker";
 import { Badge } from "../components/badge";
 import { Button } from "../components/button";
 import {
@@ -148,6 +150,16 @@ export function AccessGroupsPage() {
   const [openGroup, setOpenGroup] = useState<GroupRow | null>(null);
   const [renameTarget, setRenameTarget] = useState<GroupRow | null>(null);
   const [restrictOpen, setRestrictOpen] = useState(false);
+  const [editConnection, setEditConnection] = useState<{
+    readonly integration: string;
+    readonly name: string;
+    readonly groups: readonly string[];
+  } | null>(null);
+  const [editToolkit, setEditToolkit] = useState<{
+    readonly toolkitId: string;
+    readonly slug: string;
+    readonly groups: readonly string[];
+  } | null>(null);
 
   // The org member directory, for joining opaque account ids to identities in
   // rosters and for the add-member picker. An unreadable directory degrades to
@@ -310,8 +322,9 @@ export function AccessGroupsPage() {
                 <div>
                   <h2 className="text-sm font-medium text-foreground">Restricted connections</h2>
                   <p className="mt-0.5 text-sm text-muted-foreground">
-                    A restricted workspace connection is invisible to everyone outside its group —
-                    it disappears from their catalogs, tools, and MCP sessions.
+                    A restricted workspace connection is invisible to everyone outside its groups —
+                    it disappears from their catalogs, tools, and MCP sessions. Members of any
+                    listed group can use it.
                   </p>
                 </div>
                 <Button
@@ -352,9 +365,20 @@ export function AccessGroupsPage() {
                                 {restriction.integration}/{restriction.name}
                               </p>
                             </div>
-                            <Badge className="bg-muted text-muted-foreground">
-                              {groupName(restriction.group)}
-                            </Badge>
+                            <div className="flex flex-wrap justify-end gap-1">
+                              {restriction.groups.map((group) => (
+                                <Badge key={group} className="bg-muted text-muted-foreground">
+                                  {groupName(group)}
+                                </Badge>
+                              ))}
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setEditConnection(restriction)}
+                            >
+                              Edit
+                            </Button>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -376,7 +400,8 @@ export function AccessGroupsPage() {
               <div className="mb-4">
                 <h2 className="text-sm font-medium text-foreground">Restricted toolkits</h2>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  A restricted toolkit&apos;s URL resolves to nothing for anyone outside its group.
+                  A restricted toolkit&apos;s URL resolves to nothing for anyone outside its groups.
+                  Grant one from the toolkit&apos;s own page; edit or clear its groups here.
                 </p>
               </div>
               {AsyncResult.match(toolkitRestrictionsResult, {
@@ -402,9 +427,20 @@ export function AccessGroupsPage() {
                               {restriction.toolkitId}
                             </p>
                           </div>
-                          <Badge className="bg-muted text-muted-foreground">
-                            {groupName(restriction.group)}
-                          </Badge>
+                          <div className="flex flex-wrap justify-end gap-1">
+                            {restriction.groups.map((group) => (
+                              <Badge key={group} className="bg-muted text-muted-foreground">
+                                {groupName(group)}
+                              </Badge>
+                            ))}
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setEditToolkit(restriction)}
+                          >
+                            Edit
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -447,6 +483,25 @@ export function AccessGroupsPage() {
         onOpenChange={setRestrictOpen}
         groups={groups}
       />
+      {editConnection && (
+        <RestrictConnectionDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditConnection(null);
+          }}
+          groups={groups}
+          editing={editConnection}
+        />
+      )}
+      {editToolkit && (
+        <ToolkitGroupsDialog
+          groups={groups}
+          toolkit={editToolkit}
+          onOpenChange={(open) => {
+            if (!open) setEditToolkit(null);
+          }}
+        />
+      )}
     </PageContainer>
   );
 }
@@ -631,14 +686,23 @@ function RestrictConnectionDialog(props: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   groups: readonly GroupRow[];
+  /** When set, the dialog edits this already-restricted connection's grant
+   *  set instead of picking a new connection. */
+  editing?: {
+    readonly integration: string;
+    readonly name: string;
+    readonly groups: readonly string[];
+  };
 }) {
   // The admin's OWN (group-filtered) view of workspace connections — exactly
   // the set that can still be newly restricted; already-restricted ones live
-  // in the restrictions list.
+  // in the restrictions list and arrive here through `editing`.
   const connectionsResult = useAtomValue(connectionsAtom("org"));
   const doRestrict = useAtomSet(restrictConnectionToGroup, { mode: "promiseExit" });
-  const [pickedConnection, setPickedConnection] = useState("");
-  const [pickedGroup, setPickedGroup] = useState("");
+  const [pickedConnection, setPickedConnection] = useState(
+    props.editing ? `${props.editing.integration}/${props.editing.name}` : "",
+  );
+  const [pickedGroups, setPickedGroups] = useState<readonly string[]>(props.editing?.groups ?? []);
   const [saving, setSaving] = useState(false);
 
   const connections = AsyncResult.match(connectionsResult, {
@@ -653,18 +717,18 @@ function RestrictConnectionDialog(props: {
 
   const handleRestrict = async () => {
     const [integration, name] = pickedConnection.split("/");
-    if (!integration || !name || !pickedGroup) return;
+    if (!integration || !name || pickedGroups.length === 0) return;
     setSaving(true);
     const exit = await doRestrict({
-      payload: { integration, name, group: pickedGroup },
+      payload: { integration, name, groups: pickedGroups },
       reactivityKeys: accessGroupWriteKeys,
     });
     setSaving(false);
     if (Exit.isSuccess(exit)) {
       setPickedConnection("");
-      setPickedGroup("");
+      setPickedGroups([]);
       props.onOpenChange(false);
-      toast.success("Connection restricted");
+      toast.success(props.editing ? "Connection groups updated" : "Connection restricted");
     } else {
       toast.error(messageFromExit(exit, GENERIC_WRITE_ERROR));
     }
@@ -674,10 +738,13 @@ function RestrictConnectionDialog(props: {
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Restrict a connection</DialogTitle>
+          <DialogTitle className="font-display text-xl">
+            {props.editing ? "Edit connection groups" : "Restrict a connection"}
+          </DialogTitle>
           <DialogDescription className="text-sm leading-relaxed">
-            Only members of the chosen group will see or use this workspace connection. It
-            disappears for everyone else — catalogs, tools, and open MCP sessions included.
+            Only members of the chosen groups will see or use this workspace connection — membership
+            in any one of them is enough. It disappears for everyone else — catalogs, tools, and
+            open MCP sessions included.
           </DialogDescription>
         </DialogHeader>
 
@@ -686,39 +753,38 @@ function RestrictConnectionDialog(props: {
             <Label className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
               Connection
             </Label>
-            <Select value={pickedConnection} onValueChange={setPickedConnection}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Pick a workspace connection" />
-              </SelectTrigger>
-              <SelectContent>
-                {connections.map((connection) => (
-                  <SelectItem
-                    key={`${connection.integration}/${connection.name}`}
-                    value={`${connection.integration}/${connection.name}`}
-                  >
-                    {connection.integration}/{connection.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {props.editing ? (
+              <p className="text-sm font-medium text-foreground">{pickedConnection}</p>
+            ) : (
+              <Select value={pickedConnection} onValueChange={setPickedConnection}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue placeholder="Pick a workspace connection" />
+                </SelectTrigger>
+                <SelectContent>
+                  {connections.map((connection) => (
+                    <SelectItem
+                      key={`${connection.integration}/${connection.name}`}
+                      value={`${connection.integration}/${connection.name}`}
+                    >
+                      {connection.integration}/{connection.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="grid gap-1.5">
             <Label className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              Group
+              Groups
             </Label>
-            <Select value={pickedGroup} onValueChange={setPickedGroup}>
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue placeholder="Pick a group" />
-              </SelectTrigger>
-              <SelectContent>
-                {props.groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    {group.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <AccessGroupPicker
+              idPrefix="restrict-connection"
+              groups={props.groups}
+              selected={pickedGroups}
+              onChange={setPickedGroups}
+              disabled={saving}
+            />
           </div>
         </div>
 
@@ -731,9 +797,78 @@ function RestrictConnectionDialog(props: {
           <Button
             size="sm"
             onClick={handleRestrict}
-            disabled={!pickedConnection || !pickedGroup || saving}
+            disabled={!pickedConnection || pickedGroups.length === 0 || saving}
           >
-            {saving ? "Restricting…" : "Restrict"}
+            {saving ? "Saving…" : props.editing ? "Save" : "Restrict"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ── Edit a restricted toolkit's groups ──────────────────────────────────────
+
+function ToolkitGroupsDialog(props: {
+  groups: readonly GroupRow[];
+  toolkit: {
+    readonly toolkitId: string;
+    readonly slug: string;
+    readonly groups: readonly string[];
+  };
+  onOpenChange: (open: boolean) => void;
+}) {
+  const doRestrict = useAtomSet(restrictToolkitToGroup, { mode: "promiseExit" });
+  const [pickedGroups, setPickedGroups] = useState<readonly string[]>(props.toolkit.groups);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (pickedGroups.length === 0) return;
+    setSaving(true);
+    const exit = await doRestrict({
+      payload: { toolkitId: props.toolkit.toolkitId, groups: pickedGroups },
+      reactivityKeys: accessGroupWriteKeys,
+    });
+    setSaving(false);
+    if (Exit.isSuccess(exit)) {
+      props.onOpenChange(false);
+      toast.success(`Toolkit "${props.toolkit.slug}" groups updated`);
+    } else {
+      toast.error(messageFromExit(exit, GENERIC_WRITE_ERROR));
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={props.onOpenChange}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle className="font-display text-xl">Edit toolkit groups</DialogTitle>
+          <DialogDescription className="text-sm leading-relaxed">
+            Only members of the chosen groups can open <strong>{props.toolkit.slug}</strong> —
+            membership in any one of them is enough. Use Remove on the list to make it visible to
+            everyone again.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-1.5 py-3">
+          <Label className="text-sm font-medium uppercase tracking-wider text-muted-foreground">
+            Groups
+          </Label>
+          <AccessGroupPicker
+            idPrefix="toolkit-groups"
+            groups={props.groups}
+            selected={pickedGroups}
+            onChange={setPickedGroups}
+            disabled={saving}
+          />
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="ghost" size="sm">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button size="sm" onClick={handleSave} disabled={pickedGroups.length === 0 || saving}>
+            {saving ? "Saving…" : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

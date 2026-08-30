@@ -120,6 +120,13 @@
       "when": 1786823746605,
       "tag": "0016_nifty_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788031467008,
+      "tag": "0017_perfect_doctor_octopus",
+      "breakpoints": true
     }
   ]
 }

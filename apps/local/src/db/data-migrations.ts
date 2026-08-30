@@ -7,6 +7,7 @@
 
 import {
   Effect,
+  connectionAccessGroupSqliteMigration,
   oauthClientGcSqliteMigration,
   sqliteDataMigration,
   type SqliteDataMigration,
@@ -51,4 +52,8 @@ export const localDataMigrations: readonly SqliteDataMigration[] = [
   // Stale-mark connections whose operations return NDJSON so their tool rows
   // rebuild with array-wrapped output schemas (mirrors cloud's drizzle 0010).
   openApiNdjsonOutputDataMigration,
+  // Copy the legacy single-valued `connection.access_group` restriction into
+  // the multi-group `connection_access_group` grant table (mirrors cloud's
+  // drizzle 0017).
+  connectionAccessGroupSqliteMigration,
 ];

@@ -136,10 +136,10 @@ describe("toolkitsPlugin", () => {
 
         const group = yield* admin.executor.accessGroups.create({ name: "finance" });
         yield* admin.executor.accessGroups.addMember({ id: group.id, subject: "member-a" });
-        yield* admin.executor.accessGroups.restrictConnection({
+        yield* admin.executor.accessGroups.setConnectionGroups({
           integration: GITHUB,
           name: MAIN,
-          group: group.id,
+          groups: [group.id],
         });
 
         const member = yield* makeTestWorkspaceHarness({
@@ -185,7 +185,9 @@ describe("toolkitsPlugin", () => {
         });
         const group = yield* admin.executor.accessGroups.create({ name: "finance" });
         yield* admin.executor.accessGroups.addMember({ id: group.id, subject: "member-a" });
-        yield* admin.executor.toolkits.setAccessGroup(toolkit.id, group.id);
+        const execs = yield* admin.executor.accessGroups.create({ name: "execs" });
+        yield* admin.executor.accessGroups.addMember({ id: execs.id, subject: "member-c" });
+        yield* admin.executor.toolkits.setAccessGroups(toolkit.id, [group.id, execs.id]);
 
         const member = yield* makeTestWorkspaceHarness({
           plugins,
@@ -199,10 +201,20 @@ describe("toolkitsPlugin", () => {
           subject: "member-b",
           dataDir,
         });
+        const exec = yield* makeTestWorkspaceHarness({
+          plugins,
+          tenant,
+          subject: "member-c",
+          dataDir,
+        });
 
-        // The member's view is unchanged; the toolkit does not exist for the
-        // outsider — not in the list, and its id answers not-found.
+        // Members of EITHER granted group see it (OR semantics); the toolkit
+        // does not exist for the outsider — not in the list, and its id
+        // answers not-found.
         expect((yield* member.executor.toolkits.list()).map((item) => item.slug)).toEqual([
+          "deploy-kit",
+        ]);
+        expect((yield* exec.executor.toolkits.list()).map((item) => item.slug)).toEqual([
           "deploy-kit",
         ]);
         expect(yield* outsider.executor.toolkits.list()).toEqual([]);
@@ -226,13 +238,20 @@ describe("toolkitsPlugin", () => {
         // The management surface stays unfiltered: the admin (not a member)
         // still sees and can clear the grant; membership edits apply live.
         expect(yield* admin.executor.toolkits.listRestrictedToolkits()).toEqual([
-          { toolkitId: toolkit.id, slug: "deploy-kit", group: group.id },
+          { toolkitId: toolkit.id, slug: "deploy-kit", groups: [group.id, execs.id] },
         ]);
         expect(yield* admin.executor.toolkits.list()).toEqual([]);
-        yield* admin.executor.toolkits.setAccessGroup(toolkit.id, null);
+        // Dropping one group from the set revokes only its members.
+        yield* admin.executor.toolkits.setAccessGroups(toolkit.id, [execs.id]);
+        expect(yield* member.executor.toolkits.list()).toEqual([]);
+        expect((yield* exec.executor.toolkits.list()).map((item) => item.slug)).toEqual([
+          "deploy-kit",
+        ]);
+        yield* admin.executor.toolkits.setAccessGroups(toolkit.id, []);
         expect((yield* outsider.executor.toolkits.list()).map((item) => item.slug)).toEqual([
           "deploy-kit",
         ]);
+        expect(yield* admin.executor.toolkits.listRestrictedToolkits()).toEqual([]);
       }),
     ),
   );
@@ -244,14 +263,73 @@ describe("toolkitsPlugin", () => {
       });
       const personal = yield* executor.toolkits.create({ owner: "user", name: "Mine" });
       const personalError = yield* Effect.flip(
-        executor.toolkits.setAccessGroup(personal.id, "grp_x"),
+        executor.toolkits.setAccessGroups(personal.id, ["grp_x"]),
       );
       expect(Predicate.isTagged("ToolkitError")(personalError)).toBe(true);
       const unknownError = yield* Effect.flip(
-        executor.toolkits.setAccessGroup("tk_missing", "grp_x"),
+        executor.toolkits.setAccessGroups("tk_missing", ["grp_x"]),
       );
       expect(Predicate.isTagged("ToolkitError")(unknownError)).toBe(true);
     }),
+  );
+
+  it.effect("a legacy single-valued `accessGroup` record is still enforced and reported", () =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const dataDir = mkdtempSync(join(tmpdir(), "toolkit-legacy-grant-"));
+        const tenant = "shared-tenant";
+        const plugins = [toolkitsPlugin(), githubFixturePlugin()] as const;
+        const admin = yield* makeTestWorkspaceHarness({
+          plugins,
+          tenant,
+          subject: "admin",
+          dataDir,
+        });
+        const toolkit = yield* admin.executor.toolkits.create({ owner: "org", name: "Old Kit" });
+        const group = yield* admin.executor.accessGroups.create({ name: "finance" });
+        yield* admin.executor.accessGroups.addMember({ id: group.id, subject: "member-a" });
+        // Write the pre-multi-group record shape straight into plugin storage,
+        // bypassing the extension (which only ever writes the new shape).
+        yield* Effect.promise(async () => {
+          const db = admin.testDb.db.withContext!({ tenant, subject: "admin" });
+          const rows = await db.findMany("plugin_storage", {
+            where: (b) => b.and(b("collection", "=", "toolkits"), b("key", "=", toolkit.id)),
+          });
+          const data = rows[0]!.data as Record<string, unknown>;
+          const { accessGroups: _dropped, ...legacy } = data;
+          await db.updateMany("plugin_storage", {
+            where: (b) => b.and(b("collection", "=", "toolkits"), b("key", "=", toolkit.id)),
+            set: { data: { ...legacy, accessGroup: group.id } },
+          });
+        });
+
+        const member = yield* makeTestWorkspaceHarness({
+          plugins,
+          tenant,
+          subject: "member-a",
+          dataDir,
+        });
+        const outsider = yield* makeTestWorkspaceHarness({
+          plugins,
+          tenant,
+          subject: "member-b",
+          dataDir,
+        });
+        expect((yield* member.executor.toolkits.list()).map((item) => item.slug)).toEqual([
+          "old-kit",
+        ]);
+        expect(yield* outsider.executor.toolkits.list()).toEqual([]);
+        expect(yield* admin.executor.toolkits.listRestrictedToolkits()).toEqual([
+          { toolkitId: toolkit.id, slug: "old-kit", groups: [group.id] },
+        ]);
+        // The next write migrates the record to the multi-valued shape.
+        yield* admin.executor.toolkits.setAccessGroups(toolkit.id, [group.id]);
+        expect(yield* admin.executor.toolkits.listRestrictedToolkits()).toEqual([
+          { toolkitId: toolkit.id, slug: "old-kit", groups: [group.id] },
+        ]);
+        expect(yield* outsider.executor.toolkits.list()).toEqual([]);
+      }),
+    ),
   );
 
   it.effect("rejects duplicate visible slugs", () =>

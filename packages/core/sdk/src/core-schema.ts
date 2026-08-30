@@ -200,9 +200,9 @@ export const coreTables = defineTables({
   // A named audience of org members ("finance-leads"). Tenant-scoped like
   // `subject`: groups are org-level objects, not per-owner rows, and the
   // admin plane needs to read them tenant-wide with zero policy changes.
-  // Referential integrity with `connection.access_group` is a service-layer
+  // Referential integrity with `connection_access_group` is a service-layer
   // concern (this schema has no FK machinery): group deletion is rejected
-  // while any connection references the group.
+  // while any connection grant references the group.
   access_group: tenantExecutorTable(
     "access_group",
     {
@@ -225,6 +225,24 @@ export const coreTables = defineTables({
       created_at: dateColumn("created_at"),
     },
     ["tenant", "group_id", "subject"],
+  ),
+
+  // Connection grants — one row per (org connection, group). A connection
+  // with at least one grant row is visible/usable ONLY to members of ANY
+  // granted group (OR semantics); no rows = unrestricted. Restriction
+  // targets are always org-owned (the service layer rejects restricting a
+  // personal connection), so the key carries no owner. Supersedes the
+  // single-valued `connection.access_group` column, which is backfilled
+  // into this table and no longer read.
+  connection_access_group: tenantExecutorTable(
+    "connection_access_group",
+    {
+      integration: keyColumn("integration"),
+      name: keyColumn("name"),
+      group_id: keyColumn("group_id"),
+      created_at: dateColumn("created_at"),
+    },
+    ["tenant", "integration", "name", "group_id"],
   ),
 
   // THE saved credential, one per (owner, integration, name). Resolves each named
@@ -267,11 +285,12 @@ export const coreTables = defineTables({
       // callback). Null means refresh uses the oauth_client's `token_url`.
       oauth_token_url: nullableTextColumn("oauth_token_url"),
       provider_state: nullableJsonColumn("provider_state"),
-      // Access-group restriction: the `access_group.id` whose members may see
-      // and invoke this connection; null = unrestricted (every org member, the
-      // pre-existing semantics). Only meaningful on org-owned rows — the
-      // service layer rejects restricting a personal connection. Nullable is
-      // load-bearing: SQLite boot-ensure hosts cannot add NOT NULL columns.
+      // DEPRECATED — the original single-valued access-group restriction.
+      // Superseded by the `connection_access_group` grant table (multiple
+      // groups, OR semantics); existing values are backfilled there by a
+      // migration and this column is neither read nor written any more. It
+      // stays because SQLite boot-ensure hosts cannot drop columns, and the
+      // cloud schema is generated from this file.
       access_group: nullableKeyColumn("access_group"),
       created_at: dateColumn("created_at"),
       updated_at: dateColumn("updated_at"),
@@ -470,6 +489,7 @@ export type SubjectRow = FumaRow<CoreSchema["subject"]>;
 export type ConnectionRow = FumaRow<CoreSchema["connection"]>;
 export type AccessGroupRow = FumaRow<CoreSchema["access_group"]>;
 export type AccessGroupMemberRow = FumaRow<CoreSchema["access_group_member"]>;
+export type ConnectionAccessGroupRow = FumaRow<CoreSchema["connection_access_group"]>;
 export type OAuthClientRow = FumaRow<CoreSchema["oauth_client"]>;
 export type OAuthSessionRow = FumaRow<CoreSchema["oauth_session"]>;
 export type ToolRow = FumaRow<CoreSchema["tool"]>;

@@ -33,6 +33,7 @@ import {
   artifact,
   blob,
   connection,
+  connection_access_group,
   definition,
   integration,
   oauth_client,
@@ -173,6 +174,13 @@ const seedTenant = async (db: DrizzleDb, tenant: string, tag: string) => {
     created_at: now,
     tenant,
   });
+  await db.insert(connection_access_group).values({
+    integration: "i",
+    name: "n",
+    group_id: `grp-${tag}`,
+    created_at: now,
+    tenant,
+  });
 
   const orgNs = `o:${tenant}/plugin`;
   const userNs = `u:${tenant}:subject/plugin`;
@@ -203,6 +211,7 @@ const TENANT_TABLES = [
   artifact,
   access_group,
   access_group_member,
+  connection_access_group,
 ] as const;
 
 // Tables that are NOT purged by org id, each with the reason it is exempt. Any

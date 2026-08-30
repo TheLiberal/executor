@@ -71,6 +71,7 @@ const enforcementTestPlugin = definePlugin(() => ({
 const plugins = [enforcementTestPlugin()] as const;
 
 const MEMBER = "member-subject";
+const EXEC_MEMBER = "exec-member-subject";
 const NON_MEMBER = "non-member-subject";
 
 const addr = (integration: IntegrationSlug, tool: string): ToolAddress =>
@@ -78,10 +79,11 @@ const addr = (integration: IntegrationSlug, tool: string): ToolAddress =>
 
 /**
  * Shared-tenant fixture: an admin binding seeds two org connections (vercel +
- * github), creates the "finance" group with MEMBER in it, and restricts the
- * vercel connection to it. Returns the two subject-bound executors plus the
- * admin harness (which manages the group but is NOT a member — its runtime
- * view is filtered like everyone's).
+ * github), creates the "finance" group with MEMBER in it and the "execs"
+ * group with EXEC_MEMBER in it, and grants the vercel connection to BOTH
+ * (OR semantics: either roster suffices). Returns the subject-bound
+ * executors plus the admin harness (which manages the groups but is NOT a
+ * member of either — its runtime view is filtered like everyone's).
  */
 const setupRestrictedWorkspace = Effect.gen(function* () {
   const dataDir = mkdtempSync(join(tmpdir(), "access-groups-"));
@@ -100,20 +102,28 @@ const setupRestrictedWorkspace = Effect.gen(function* () {
   }
   const group = yield* admin.executor.accessGroups.create({ name: "finance" });
   yield* admin.executor.accessGroups.addMember({ id: group.id, subject: MEMBER });
-  yield* admin.executor.accessGroups.restrictConnection({
+  const execs = yield* admin.executor.accessGroups.create({ name: "execs" });
+  yield* admin.executor.accessGroups.addMember({ id: execs.id, subject: EXEC_MEMBER });
+  yield* admin.executor.accessGroups.setConnectionGroups({
     integration: VERCEL,
     name: CONN,
-    group: group.id,
+    groups: [group.id, execs.id],
   });
 
   const member = yield* makeTestWorkspaceHarness({ plugins, tenant, subject: MEMBER, dataDir });
+  const execMember = yield* makeTestWorkspaceHarness({
+    plugins,
+    tenant,
+    subject: EXEC_MEMBER,
+    dataDir,
+  });
   const nonMember = yield* makeTestWorkspaceHarness({
     plugins,
     tenant,
     subject: NON_MEMBER,
     dataDir,
   });
-  return { admin, member, nonMember, group, tenant, dataDir };
+  return { admin, member, execMember, nonMember, group, execs, tenant, dataDir };
 });
 
 describe("access-group enforcement", () => {
@@ -265,6 +275,78 @@ describe("access-group enforcement", () => {
         ).toEqual([]);
         const error = yield* Effect.flip(nonMember.executor.execute(addr(VERCEL, "deploy"), {}));
         expect(Predicate.isTagged("ToolNotFoundError")(error)).toBe(true);
+      }),
+    ),
+  );
+
+  it.effect("OR semantics: a member of ANY granted group sees and invokes the connection", () =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const { member, execMember, nonMember } = yield* setupRestrictedWorkspace;
+        const ref = { owner: "org", integration: VERCEL, name: CONN } as const;
+
+        for (const harness of [member, execMember]) {
+          expect(
+            (yield* harness.executor.tools.list())
+              .filter((tool) => tool.integration === VERCEL)
+              .map((tool) => String(tool.name)),
+          ).toEqual(["deploy", "logs"]);
+          expect(yield* harness.executor.connections.get(ref)).not.toBeNull();
+          expect(yield* harness.executor.tools.schema(addr(VERCEL, "deploy"))).not.toBeNull();
+          expect(yield* harness.executor.execute(addr(VERCEL, "deploy"), {})).toEqual({
+            ran: "vercel.deploy",
+          });
+        }
+        // Membership in neither group: hidden on every surface.
+        expect(
+          (yield* nonMember.executor.tools.list()).filter((tool) => tool.integration === VERCEL),
+        ).toEqual([]);
+        expect(yield* nonMember.executor.connections.get(ref)).toBeNull();
+        expect(yield* nonMember.executor.tools.schema(addr(VERCEL, "deploy"))).toBeNull();
+        const error = yield* Effect.flip(nonMember.executor.execute(addr(VERCEL, "deploy"), {}));
+        expect(Predicate.isTagged("ToolNotFoundError")(error)).toBe(true);
+      }),
+    ),
+  );
+
+  it.effect("grant edits are read live: dropping one group keeps the other's members", () =>
+    Effect.scoped(
+      Effect.gen(function* () {
+        const { admin, member, execMember, nonMember, group, execs } =
+          yield* setupRestrictedWorkspace;
+        const vercelTools = (harness: typeof member) =>
+          harness.executor.tools
+            .list()
+            .pipe(Effect.map((tools) => tools.filter((tool) => tool.integration === VERCEL)));
+
+        // Replace [finance, execs] with [execs]: finance members lose access
+        // on the next call, execs members keep it.
+        yield* admin.executor.accessGroups.setConnectionGroups({
+          integration: VERCEL,
+          name: CONN,
+          groups: [execs.id],
+        });
+        expect(yield* vercelTools(member)).toEqual([]);
+        expect(yield* vercelTools(execMember)).toHaveLength(2);
+        const memberError = yield* Effect.flip(member.executor.execute(addr(VERCEL, "deploy"), {}));
+        expect(Predicate.isTagged("ToolNotFoundError")(memberError)).toBe(true);
+
+        // Back to both.
+        yield* admin.executor.accessGroups.setConnectionGroups({
+          integration: VERCEL,
+          name: CONN,
+          groups: [execs.id, group.id],
+        });
+        expect(yield* vercelTools(member)).toHaveLength(2);
+
+        // Clearing every grant unrestricts: everyone sees it again.
+        yield* admin.executor.accessGroups.setConnectionGroups({
+          integration: VERCEL,
+          name: CONN,
+          groups: [],
+        });
+        expect(yield* vercelTools(nonMember)).toHaveLength(2);
+        expect(yield* admin.executor.accessGroups.restrictions()).toEqual([]);
       }),
     ),
   );

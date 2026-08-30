@@ -420,8 +420,10 @@ export type Executor<TPlugins extends readonly AnyPlugin[] = readonly []> = {
       input: AccessGroupMemberInput,
     ) => Effect.Effect<AccessGroupMember, StorageFailure>;
     readonly removeMember: (input: AccessGroupMemberInput) => Effect.Effect<void, StorageFailure>;
-    /** Org-owned connections only — the input carries no owner on purpose. */
-    readonly restrictConnection: (
+    /** Org-owned connections only — the input carries no owner on purpose.
+     *  REPLACES the connection's grant set (members of ANY listed group may
+     *  use it); an empty list unrestricts. Every group must exist. */
+    readonly setConnectionGroups: (
       input: RestrictConnectionInput,
     ) => Effect.Effect<void, ConnectionNotFoundError | StorageFailure>;
     readonly unrestrictConnection: (
@@ -3153,8 +3155,17 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
         // mode cross-reference below: a restricted connection is invisible
         // to a non-member on every variant of this surface.
         const groups = yield* loadSubjectGroupIds();
+        const restricted = groups === null ? null : yield* loadRestrictedConnections();
         const connections = rows
-          .filter((row) => subjectMayUseConnection(groups, row.access_group))
+          .filter(
+            (row) =>
+              restricted === null ||
+              row.owner !== "org" ||
+              subjectMayUseConnection(
+                groups,
+                restricted.get(restrictedConnectionKey(row.integration, row.name)),
+              ),
+          )
           .map(rowToConnection);
         if (!activeToolPolicyProvider) return connections;
 
@@ -3247,6 +3258,9 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
                 b("name", "=", String(ref.name)),
               ),
           });
+          if (ref.owner === "org") {
+            yield* core.deleteMany("connection_access_group", { where: grantsWhere(ref) });
+          }
         }),
       );
 
@@ -3651,8 +3665,9 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
 
     // ------------------------------------------------------------------
     // Access groups — subject-keyed connection restriction. A connection
-    // carrying `access_group` is visible/usable ONLY to members of that
-    // group. The gate is a HARD visibility boundary layered ABOVE policy
+    // with grant rows in `connection_access_group` is visible/usable ONLY to
+    // members of ANY granted group (OR semantics; no rows = unrestricted).
+    // The gate is a HARD visibility boundary layered ABOVE policy
     // resolution: to a non-member the connection and its tools behave
     // exactly like nonexistent rows (same errors, same suggestions — no
     // distinguishable 403, no existence oracle), and no `tool_policy`
@@ -3678,44 +3693,84 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
             })
             .pipe(Effect.map((rows) => new Set(rows.map((row) => row.group_id))));
 
-    /** May a view holding `groups` use a connection whose `access_group`
-     *  column is `accessGroup`? Null column = unrestricted row; null groups =
-     *  unrestricted view. */
+    /** May a view holding `groups` use a connection granted to `granted`?
+     *  No grants = unrestricted row; null groups = unrestricted view;
+     *  otherwise membership in ANY granted group suffices. */
     const subjectMayUseConnection = (
       groups: ReadonlySet<string> | null,
-      accessGroup: unknown,
-    ): boolean => groups === null || accessGroup == null || groups.has(String(accessGroup));
+      granted: ReadonlySet<string> | undefined,
+    ): boolean => {
+      if (groups === null || granted === undefined || granted.size === 0) return true;
+      for (const group of granted) if (groups.has(group)) return true;
+      return false;
+    };
 
-    const restrictedConnectionKey = (owner: string, integration: string, connection: string) =>
-      `${owner}:${integration}:${connection}`;
+    /** Grants are keyed by (integration, name) only: restriction targets are
+     *  always org-owned, so a personal row never consults the map. */
+    const restrictedConnectionKey = (integration: string, connection: string) =>
+      `${integration}:${connection}`;
 
-    /** `owner:integration:name → access_group` for every restricted
+    const groupGrantRows = (
+      rows: readonly {
+        readonly integration: string;
+        readonly name: string;
+        readonly group_id: string;
+      }[],
+    ): Map<string, Set<string>> => {
+      const out = new Map<string, Set<string>>();
+      for (const row of rows) {
+        const key = restrictedConnectionKey(row.integration, row.name);
+        const set = out.get(key) ?? new Set<string>();
+        set.add(row.group_id);
+        out.set(key, set);
+      }
+      return out;
+    };
+
+    /** `integration:name → granted group ids` for every restricted org
      *  connection — the cross-reference the tool surfaces need, since tool
-     *  rows don't carry the column. Bounded: restricted connections are a
-     *  small subset of the org catalog. */
+     *  rows don't carry grants. Bounded: restricted connections are a small
+     *  subset of the org catalog. */
     const loadRestrictedConnections = (): Effect.Effect<
-      ReadonlyMap<string, string>,
+      ReadonlyMap<string, ReadonlySet<string>>,
       StorageFailure
     > =>
       core
-        .findMany("connection", {
-          where: (b: AnyCb) => b.isNotNull("access_group"),
-          select: ["owner", "integration", "name", "access_group"],
+        .findMany("connection_access_group", {
+          select: ["integration", "name", "group_id"],
         })
-        .pipe(
-          Effect.map(
-            (rows) =>
-              new Map(
-                rows.map(
-                  (row) =>
-                    [
-                      restrictedConnectionKey(row.owner, row.integration, row.name),
-                      String(row.access_group),
-                    ] as const,
+        .pipe(Effect.map(groupGrantRows));
+
+    /** The grant set for one org connection (empty = unrestricted). Personal
+     *  rows are never restricted, so the query is skipped for them. */
+    const loadConnectionGrants = (
+      ref: ConnectionRef,
+    ): Effect.Effect<ReadonlySet<string>, StorageFailure> =>
+      ref.owner !== "org"
+        ? Effect.succeed(new Set<string>())
+        : core
+            .findMany("connection_access_group", {
+              where: (b: AnyCb) =>
+                b.and(
+                  b("integration", "=", String(ref.integration)),
+                  b("name", "=", String(ref.name)),
                 ),
-              ),
-          ),
-        );
+              select: ["group_id"],
+            })
+            .pipe(Effect.map((rows) => new Set(rows.map((row) => row.group_id))));
+
+    /** The gate every single-connection surface applies: unrestricted rows
+     *  and unrestricted views short-circuit before any membership read. */
+    const subjectMayUseConnectionRef = (
+      ref: ConnectionRef,
+    ): Effect.Effect<boolean, StorageFailure> =>
+      Effect.gen(function* () {
+        if (config.platformView === true || subject == null) return true;
+        const granted = yield* loadConnectionGrants(ref);
+        if (granted.size === 0) return true;
+        const groups = yield* loadSubjectGroupIds();
+        return subjectMayUseConnection(groups, granted);
+      });
 
     /** The tool-surface predicate: hides a tool row whose connection is
      *  restricted to a group this view is not in. Returns a constant-true
@@ -3738,10 +3793,9 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
           readonly integration: string;
           readonly connection: string;
         }) => {
-          const group = restricted.get(
-            restrictedConnectionKey(row.owner, row.integration, row.connection),
-          );
-          return group !== undefined && !groups.has(group);
+          if (row.owner !== "org") return false;
+          const granted = restricted.get(restrictedConnectionKey(row.integration, row.connection));
+          return granted !== undefined && !subjectMayUseConnection(groups, granted);
         };
       });
 
@@ -3758,8 +3812,7 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
       Effect.gen(function* () {
         const row = yield* findConnectionRow(ref);
         if (!row) return null;
-        const groups = yield* loadSubjectGroupIds();
-        return subjectMayUseConnection(groups, row.access_group) ? row : null;
+        return (yield* subjectMayUseConnectionRef(ref)) ? row : null;
       });
 
     /** The plugin-facing `connections.resolveValue` seam, gated: resolving a
@@ -4009,14 +4062,14 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
         // the same `null` a nonexistent or blocked tool returns. Gate only on
         // a present-but-restricted connection row: a tool row without one is
         // out of this feature's scope and keeps answering as before.
-        const schemaConnectionRow = yield* findConnectionRow({
+        const schemaConnectionRef: ConnectionRef = {
           owner: parsed.owner,
           integration: parsed.integration,
           name: parsed.connection,
-        });
-        if (schemaConnectionRow?.access_group != null) {
-          const groups = yield* loadSubjectGroupIds();
-          if (!subjectMayUseConnection(groups, schemaConnectionRow.access_group)) return null;
+        };
+        const schemaConnectionRow = yield* findConnectionRow(schemaConnectionRef);
+        if (schemaConnectionRow && !(yield* subjectMayUseConnectionRef(schemaConnectionRef))) {
+          return null;
         }
         const tool = rowToTool(row);
         const effective = yield* resolvePolicyFromRuleSet(
@@ -4378,8 +4431,8 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
       transaction(
         Effect.gen(function* () {
           yield* requireAccessGroupRow(input.id);
-          const referencing = yield* core.findFirst("connection", {
-            where: (b: AnyCb) => b("access_group", "=", input.id),
+          const referencing = yield* core.findFirst("connection_access_group", {
+            where: (b: AnyCb) => b("group_id", "=", input.id),
             select: ["integration", "name"],
           });
           if (referencing) {
@@ -4448,79 +4501,101 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
         where: (b: AnyCb) => b.and(b("group_id", "=", input.id), b("subject", "=", input.subject)),
       });
 
+    const grantsWhere =
+      (ref: { readonly integration: IntegrationSlug; readonly name: ConnectionName }) =>
+      (b: AnyCb) =>
+        b.and(b("integration", "=", String(ref.integration)), b("name", "=", String(ref.name)));
+
     // Restriction targets are ALWAYS org-owned (the input carries no owner):
     // a personal connection is already invisible to everyone else, so
-    // restricting one is a category error, not a supported call.
-    const accessGroupsRestrictConnection = (
+    // restricting one is a category error, not a supported call. The grant
+    // set is REPLACED atomically: a partial write (some groups granted, the
+    // rest missing) would silently change who can see the connection, which
+    // is the one failure mode this surface must never produce.
+    const accessGroupsSetConnectionGroups = (
       input: RestrictConnectionInput,
     ): Effect.Effect<void, ConnectionNotFoundError | StorageFailure> =>
-      Effect.gen(function* () {
-        yield* requireAccessGroupRow(input.group);
-        const ref = orgConnectionRef(input);
-        const row = yield* findConnectionRow(ref);
-        if (!row) {
-          return yield* new ConnectionNotFoundError({
-            owner: ref.owner,
-            integration: ref.integration,
-            name: ref.name,
+      transaction(
+        Effect.gen(function* () {
+          const groups = [...new Set(input.groups.map((group) => group.trim()))].filter(
+            (group) => group.length > 0,
+          );
+          for (const group of groups) yield* requireAccessGroupRow(group);
+          const ref = orgConnectionRef(input);
+          const row = yield* findConnectionRow(ref);
+          if (!row) {
+            return yield* new ConnectionNotFoundError({
+              owner: ref.owner,
+              integration: ref.integration,
+              name: ref.name,
+            });
+          }
+          yield* core.deleteMany("connection_access_group", { where: grantsWhere(input) });
+          if (groups.length > 0) {
+            const now = new Date();
+            yield* core.createMany(
+              "connection_access_group",
+              groups.map((group) => ({
+                tenant,
+                integration: String(input.integration),
+                name: String(input.name),
+                group_id: group,
+                created_at: now,
+              })),
+            );
+          }
+          yield* core.updateMany("connection", {
+            where: (b: AnyCb) => b.and(byOwner("org")(b), grantsWhere(input)(b)),
+            set: { updated_at: new Date() },
           });
-        }
-        yield* core.updateMany("connection", {
-          where: (b: AnyCb) =>
-            b.and(
-              byOwner("org")(b),
-              b("integration", "=", String(input.integration)),
-              b("name", "=", String(input.name)),
-            ),
-          set: { access_group: input.group, updated_at: new Date() },
-        });
-      });
+        }),
+      );
 
     const accessGroupsUnrestrictConnection = (
       input: UnrestrictConnectionInput,
     ): Effect.Effect<void, ConnectionNotFoundError | StorageFailure> =>
-      Effect.gen(function* () {
-        const ref = orgConnectionRef(input);
-        const row = yield* findConnectionRow(ref);
-        if (!row) {
-          return yield* new ConnectionNotFoundError({
-            owner: ref.owner,
-            integration: ref.integration,
-            name: ref.name,
-          });
-        }
-        yield* core.updateMany("connection", {
-          where: (b: AnyCb) =>
-            b.and(
-              byOwner("org")(b),
-              b("integration", "=", String(input.integration)),
-              b("name", "=", String(input.name)),
-            ),
-          set: { access_group: null, updated_at: new Date() },
-        });
-      });
+      accessGroupsSetConnectionGroups({ ...input, groups: [] });
 
     const accessGroupsRestrictions = (): Effect.Effect<
       readonly RestrictedConnection[],
       StorageFailure
     > =>
       core
-        .findMany("connection", {
-          where: (b: AnyCb) => b.isNotNull("access_group"),
-          select: ["integration", "name", "access_group"],
+        .findMany("connection_access_group", {
+          select: ["integration", "name", "group_id"],
           orderBy: [
             ["integration", "asc"],
             ["name", "asc"],
+            ["group_id", "asc"],
           ],
         })
         .pipe(
-          Effect.map((rows) =>
-            rows.map((row) => ({
-              integration: IntegrationSlug.make(row.integration),
-              name: ConnectionName.make(row.name),
-              group: AccessGroupId.make(String(row.access_group)),
-            })),
-          ),
+          Effect.map((rows) => {
+            // Rows arrive sorted by (integration, name, group_id); fold
+            // adjacent rows of one connection into its grant list.
+            const out: {
+              integration: IntegrationSlug;
+              name: ConnectionName;
+              groups: AccessGroupId[];
+            }[] = [];
+            for (const row of rows) {
+              const last = out[out.length - 1];
+              if (
+                last &&
+                String(last.integration) === row.integration &&
+                String(last.name) === row.name
+              ) {
+                last.groups.push(AccessGroupId.make(row.group_id));
+              } else {
+                out.push({
+                  integration: IntegrationSlug.make(row.integration),
+                  name: ConnectionName.make(row.name),
+                  groups: [AccessGroupId.make(row.group_id)],
+                });
+              }
+            }
+            return out;
+          }),
         );
 
     // ------------------------------------------------------------------
@@ -4842,18 +4917,16 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
         // (execute tool, sandbox tool-invoker, artifact bindings, toolkit
         // sessions) passes through here. The row loaded here is reused for
         // credential resolution below.
-        const connectionRow = yield* findConnectionRow({
+        const invokeConnectionRef: ConnectionRef = {
           owner: parsed.owner,
           integration: parsed.integration,
           name: parsed.connection,
-        });
-        if (connectionRow?.access_group != null) {
-          const groups = yield* loadSubjectGroupIds();
-          if (!subjectMayUseConnection(groups, connectionRow.access_group)) {
-            // The exact nonexistent-connection answer: both suggestion
-            // queries against a connection with no tool rows return nothing.
-            return yield* new ToolNotFoundError({ address, suggestions: [] });
-          }
+        };
+        const connectionRow = yield* findConnectionRow(invokeConnectionRef);
+        if (connectionRow && !(yield* subjectMayUseConnectionRef(invokeConnectionRef))) {
+          // The exact nonexistent-connection answer: both suggestion
+          // queries against a connection with no tool rows return nothing.
+          return yield* new ToolNotFoundError({ address, suggestions: [] });
         }
 
         // Find the tool row — projected: invoke needs routing/policy fields
@@ -5491,7 +5564,7 @@ export const createExecutor = <const TPlugins extends readonly AnyPlugin[] = rea
         members: accessGroupsMembers,
         addMember: accessGroupsAddMember,
         removeMember: accessGroupsRemoveMember,
-        restrictConnection: accessGroupsRestrictConnection,
+        setConnectionGroups: accessGroupsSetConnectionGroups,
         unrestrictConnection: accessGroupsUnrestrictConnection,
         restrictions: accessGroupsRestrictions,
       },

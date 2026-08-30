@@ -5,7 +5,11 @@
 // renamed.
 // ---------------------------------------------------------------------------
 
-import { sqliteDataMigration, type SqliteDataMigration } from "@executor-js/sdk";
+import {
+  connectionAccessGroupSqliteMigration,
+  sqliteDataMigration,
+  type SqliteDataMigration,
+} from "@executor-js/sdk";
 import { runSqliteAuthConfigMigration } from "@executor-js/sdk/http-auth";
 import {
   openApiNdjsonOutputDataMigration,
@@ -41,4 +45,8 @@ export const selfHostDataMigrations: readonly SqliteDataMigration[] = [
   // Re-file credential rows the pre-fix provider stored under the acting
   // caller's partition instead of the owner embedded in the item id (#1453).
   encryptedSecretsRepartitionDataMigration,
+  // Copy the legacy single-valued `connection.access_group` restriction into
+  // the multi-group `connection_access_group` grant table (mirrors cloud's
+  // drizzle 0017).
+  connectionAccessGroupSqliteMigration,
 ];

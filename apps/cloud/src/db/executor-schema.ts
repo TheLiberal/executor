@@ -82,6 +82,29 @@ export const access_group_member = pgTable(
   ],
 );
 
+export const connection_access_group = pgTable(
+  "connection_access_group",
+  {
+    integration: varchar("integration", { length: 255 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    group_id: varchar("group_id", { length: 255 }).notNull(),
+    created_at: timestamp("created_at").notNull(),
+    row_id: varchar("row_id", { length: 255 })
+      .primaryKey()
+      .notNull()
+      .$defaultFn(() => createId()),
+    tenant: varchar("tenant", { length: 255 }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("connection_access_group_uidx").on(
+      table.tenant,
+      table.integration,
+      table.name,
+      table.group_id,
+    ),
+  ],
+);
+
 export const connection = pgTable(
   "connection",
   {

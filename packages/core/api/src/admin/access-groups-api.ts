@@ -71,16 +71,18 @@ export const AccessGroupMemberItem = Schema.Struct({
   createdAt: Schema.String,
 });
 
+/** Members of ANY listed group may use the connection (OR semantics);
+ *  `groups` is never empty here — an unrestricted connection is not listed. */
 export const AccessGroupRestrictionItem = Schema.Struct({
   integration: Schema.String,
   name: Schema.String,
-  group: Schema.String,
+  groups: Schema.Array(Schema.String),
 });
 
 export const ToolkitRestrictionItem = Schema.Struct({
   toolkitId: Schema.String,
   slug: Schema.String,
-  group: Schema.String,
+  groups: Schema.Array(Schema.String),
 });
 
 export const AccessGroupsResponse = Schema.Struct({
@@ -111,15 +113,18 @@ export const AccessGroupAddMemberBody = Schema.Struct({
   subject: Schema.String,
 });
 
+/** REPLACES the target's grant set; every group must exist (the whole
+ *  write is rejected otherwise). An empty list unrestricts — the DELETE
+ *  routes are the same operation spelled as a resource removal. */
 export const RestrictConnectionBody = Schema.Struct({
   integration: Schema.String,
   name: Schema.String,
-  group: Schema.String,
+  groups: Schema.Array(Schema.String),
 });
 
 export const RestrictToolkitBody = Schema.Struct({
   toolkitId: Schema.String,
-  group: Schema.String,
+  groups: Schema.Array(Schema.String),
 });
 
 const GroupParams = { groupId: Schema.String };

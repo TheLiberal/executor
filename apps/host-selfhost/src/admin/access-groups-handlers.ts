@@ -105,9 +105,9 @@ const withAdminExecutor = <A, E>(
     return yield* Effect.ensuring(body(executor), executor.close().pipe(Effect.ignore));
   });
 
-/** The toolkit grant names a group that must exist — this plane owns that
+/** Every group a toolkit grant names must exist — this plane owns that
  *  referential check (the toolkits plugin cannot read the group tables). */
-const requireGroupExists = (executor: Executor<SelfHostPlugins>, group: string) =>
+const requireGroupsExist = (executor: Executor<SelfHostPlugins>, groups: readonly string[]) =>
   executor.accessGroups.list().pipe(
     Effect.catchTag("StorageError", (error) =>
       Effect.fail(new AccessGroupsError({ message: error.message })),
@@ -115,11 +115,13 @@ const requireGroupExists = (executor: Executor<SelfHostPlugins>, group: string) 
     Effect.catchTag("UniqueViolationError", () =>
       Effect.fail(new AccessGroupsError({ message: "Storage conflict" })),
     ),
-    Effect.flatMap((groups) =>
-      groups.some((candidate) => String(candidate.id) === group)
+    Effect.flatMap((known) => {
+      const ids = new Set(known.map((candidate) => String(candidate.id)));
+      const missing = groups.find((group) => !ids.has(group));
+      return missing === undefined
         ? Effect.void
-        : Effect.fail(new AccessGroupsError({ message: `Access group not found: ${group}` })),
-    ),
+        : Effect.fail(new AccessGroupsError({ message: `Access group not found: ${missing}` }));
+    }),
   );
 
 const groupToWire = (group: {
@@ -182,7 +184,7 @@ export const AccessGroupsHandlers = HttpApiBuilder.group(
           // them (a dangling grant would hide the toolkit from everyone).
           renderToolkitErrors(executor.toolkits.listRestrictedToolkits()).pipe(
             Effect.flatMap((grants) => {
-              const grant = grants.find((candidate) => candidate.group === params.groupId);
+              const grant = grants.find((candidate) => candidate.groups.includes(params.groupId));
               return grant
                 ? Effect.fail(
                     new AccessGroupsError({
@@ -233,7 +235,7 @@ export const AccessGroupsHandlers = HttpApiBuilder.group(
                 restrictions: restrictions.map((restriction) => ({
                   integration: String(restriction.integration),
                   name: String(restriction.name),
-                  group: String(restriction.group),
+                  groups: restriction.groups.map(String),
                 })),
               })),
             ),
@@ -244,10 +246,10 @@ export const AccessGroupsHandlers = HttpApiBuilder.group(
         withAdminExecutor((executor) =>
           renderEngineErrors(
             executor.accessGroups
-              .restrictConnection({
+              .setConnectionGroups({
                 integration: IntegrationSlug.make(payload.integration),
                 name: ConnectionName.make(payload.name),
-                group: payload.group,
+                groups: payload.groups,
               })
               .pipe(Effect.map(() => ({ success: true }))),
           ),
@@ -276,11 +278,11 @@ export const AccessGroupsHandlers = HttpApiBuilder.group(
       )
       .handle("restrictToolkit", ({ payload }) =>
         withAdminExecutor((executor) =>
-          requireGroupExists(executor, payload.group).pipe(
+          requireGroupsExist(executor, payload.groups).pipe(
             Effect.andThen(
               renderToolkitErrors(
                 executor.toolkits
-                  .setAccessGroup(payload.toolkitId, payload.group)
+                  .setAccessGroups(payload.toolkitId, payload.groups)
                   .pipe(Effect.map(() => ({ success: true }))),
               ),
             ),
@@ -291,7 +293,7 @@ export const AccessGroupsHandlers = HttpApiBuilder.group(
         withAdminExecutor((executor) =>
           renderToolkitErrors(
             executor.toolkits
-              .setAccessGroup(params.toolkitId, null)
+              .setAccessGroups(params.toolkitId, [])
               .pipe(Effect.map(() => ({ success: true }))),
           ),
         ),

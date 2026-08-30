@@ -21,6 +21,7 @@ import {
   artifact,
   blob,
   connection,
+  connection_access_group,
   definition,
   integration,
   oauth_client,
@@ -54,6 +55,9 @@ export const purgeOrganizationData = (db: DrizzleDb, organizationId: string): Pr
     await tx.delete(plugin_storage).where(eq(plugin_storage.tenant, organizationId));
     await tx.delete(subject).where(eq(subject.tenant, organizationId));
     await tx.delete(artifact).where(eq(artifact.tenant, organizationId));
+    await tx
+      .delete(connection_access_group)
+      .where(eq(connection_access_group.tenant, organizationId));
     await tx.delete(access_group_member).where(eq(access_group_member.tenant, organizationId));
     await tx.delete(access_group).where(eq(access_group.tenant, organizationId));
 

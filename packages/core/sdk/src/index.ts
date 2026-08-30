@@ -150,6 +150,7 @@ export {
   type ConnectionRow,
   type AccessGroupRow,
   type AccessGroupMemberRow,
+  type ConnectionAccessGroupRow,
   type OAuthClientRow,
   type OAuthSessionRow,
   type ToolRow,
@@ -478,6 +479,10 @@ export {
   oauthClientGcSqliteMigration,
   runSqliteOAuthClientGcMigration,
 } from "./sqlite-oauth-client-gc-migration";
+export {
+  connectionAccessGroupSqliteMigration,
+  runSqliteConnectionAccessGroupMigration,
+} from "./sqlite-connection-access-group-migration";
 export {
   authToolFailure,
   isUnauthorizedToolFailure,

@@ -3,7 +3,16 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import * as Atom from "effect/unstable/reactivity/Atom";
 import * as AsyncResult from "effect/unstable/reactivity/AsyncResult";
-import { ArrowLeftIcon, BoxIcon, PlugIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  BoxIcon,
+  LockIcon,
+  PlugIcon,
+  PlusIcon,
+  SearchIcon,
+  Trash2Icon,
+} from "lucide-react";
+import { Exit } from "effect";
 import {
   createPluginAtomClient,
   useIntegrationPlugins,
@@ -18,6 +27,12 @@ import {
   type ToolAddress,
   type ToolPolicyAction,
 } from "@executor-js/sdk/shared";
+import {
+  accessGroupToolkitRestrictionsAtom,
+  accessGroupWriteKeys,
+  accessGroupsAtom,
+  restrictToolkitToGroup,
+} from "@executor-js/react/api/access-groups-atoms";
 import { integrationsOptimisticAtom, toolsAllAtom } from "@executor-js/react/api/atoms";
 import { ReactivityKey } from "@executor-js/react/api/reactivity-keys";
 import { useOrganizationSlug } from "@executor-js/react/api/organization-context";
@@ -27,6 +42,7 @@ import {
   getExecutorServerAuthorizationHeader,
 } from "@executor-js/react/api/server-connection";
 import { ownerLabel, useOwnerDisplay } from "@executor-js/react/api/owner-display";
+import { AccessGroupPicker } from "@executor-js/react/components/access-group-picker";
 import { Badge } from "@executor-js/react/components/badge";
 import { Button } from "@executor-js/react/components/button";
 import { CopyButton } from "@executor-js/react/components/copy-button";
@@ -951,6 +967,7 @@ function ToolkitHeader(props: {
   mcpUrl: string;
   onBack: () => void;
   onManageConnections: () => void;
+  onManageAccess?: () => void;
   onRemove: () => void;
 }) {
   return (
@@ -997,6 +1014,19 @@ function ToolkitHeader(props: {
             <PlugIcon className="size-3.5" />
             Connections
           </Button>
+          {props.onManageAccess ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              aria-label="Manage toolkit access groups"
+              onClick={props.onManageAccess}
+              className="h-8 text-muted-foreground hover:text-foreground"
+            >
+              <LockIcon className="size-3.5" />
+              Access
+            </Button>
+          ) : null}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button
@@ -1048,6 +1078,7 @@ function ToolkitWorkspace(props: {
   onClearPolicy: (pattern: string) => Promise<void> | void;
 }) {
   const [addOpen, setAddOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
   const [selectedToolId, setSelectedToolId] = useState<string | null>(null);
   const visibleTools = useMemo(
     () => props.tools.filter((tool) => toolCanAppearInToolkit(props.toolkit, tool)),
@@ -1131,6 +1162,7 @@ function ToolkitWorkspace(props: {
         mcpUrl={props.mcpUrl}
         onBack={props.onBack}
         onManageConnections={() => setAddOpen(true)}
+        onManageAccess={props.toolkit.owner === "org" ? () => setAccessOpen(true) : undefined}
         onRemove={props.onRemoveToolkit}
       />
 
@@ -1177,7 +1209,99 @@ function ToolkitWorkspace(props: {
         }}
         onRemoveConnection={props.onRemoveConnection}
       />
+      {accessOpen ? (
+        <ToolkitAccessDialog toolkit={props.toolkit} onOpenChange={setAccessOpen} />
+      ) : null}
     </div>
+  );
+}
+
+// ── Access groups ────────────────────────────────────────────────────────────
+//
+// Which access groups may open an org toolkit. Reads and writes the ADMIN
+// plane: a non-admin gets 401/403 on the group list and sees an explicit
+// "admin only" note instead of an empty picker. Members of ANY chosen group
+// can use the toolkit; clearing every group makes it visible to everyone.
+// Mounted only while open so its form state starts fresh each time.
+
+function ToolkitAccessDialog(props: {
+  toolkit: ToolkitResponse;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const groupsResult = useAtomValue(accessGroupsAtom);
+  const restrictionsResult = useAtomValue(accessGroupToolkitRestrictionsAtom);
+  const doRestrict = useAtomSet(restrictToolkitToGroup, { mode: "promiseExit" });
+  const [picked, setPicked] = useState<readonly string[] | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const current: readonly string[] = AsyncResult.isSuccess(restrictionsResult)
+    ? (restrictionsResult.value.restrictions.find(
+        (restriction) => restriction.toolkitId === props.toolkit.id,
+      )?.groups ?? [])
+    : [];
+  const selected = picked ?? current;
+  const ready = AsyncResult.isSuccess(groupsResult) && AsyncResult.isSuccess(restrictionsResult);
+  const denied = AsyncResult.isFailure(groupsResult) || AsyncResult.isFailure(restrictionsResult);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError(null);
+    const exit = await doRestrict({
+      payload: { toolkitId: props.toolkit.id, groups: selected },
+      reactivityKeys: accessGroupWriteKeys,
+    });
+    setSaving(false);
+    if (Exit.isSuccess(exit)) {
+      props.onOpenChange(false);
+    } else {
+      setError("The change was refused. Please try again.");
+    }
+  };
+
+  return (
+    <Dialog open onOpenChange={props.onOpenChange}>
+      <DialogContent className="sm:max-w-[420px]">
+        <DialogHeader>
+          <DialogTitle>Who can open {props.toolkit.name}?</DialogTitle>
+          <DialogDescription>
+            Only members of the chosen access groups can use this toolkit&apos;s MCP endpoint —
+            membership in any one of them is enough. Leave every group unchecked to keep it open to
+            the whole workspace.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-2">
+          {denied ? (
+            <p className="text-sm text-muted-foreground">
+              Managing access groups requires a workspace admin.
+            </p>
+          ) : !ready ? (
+            <Skeleton className="h-24 w-full rounded-md" />
+          ) : (
+            <AccessGroupPicker
+              idPrefix={`toolkit-access-${props.toolkit.id}`}
+              groups={groupsResult.value.groups}
+              selected={selected}
+              onChange={setPicked}
+              disabled={saving}
+            />
+          )}
+          {error ? (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              {error}
+            </p>
+          ) : null}
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="ghost" size="sm" onClick={() => props.onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="button" size="sm" onClick={handleSave} disabled={!ready || saving}>
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

@@ -92,7 +92,7 @@ test("only the instance admin can manage access groups", async () => {
       await request("/api/admin/access-group-restrictions", {
         method: "POST",
         token: memberToken,
-        body: { integration: "github", name: "main", group: "grp_x" },
+        body: { integration: "github", name: "main", groups: ["grp_x"] },
       })
     ).status,
   ).toBe(403);
@@ -107,9 +107,17 @@ test("only the instance admin can manage access groups", async () => {
   const group = (await created.json()) as { id: string; name: string };
   expect(group.name).toBe("finance");
 
+  const second = (await (
+    await request("/api/admin/access-groups", {
+      method: "POST",
+      token: adminToken,
+      body: { name: "execs" },
+    })
+  ).json()) as { id: string; name: string };
+
   const listed = await request("/api/admin/access-groups", { token: adminToken });
   expect(listed.status).toBe(200);
-  expect(((await listed.json()) as { groups: unknown[] }).groups).toHaveLength(1);
+  expect(((await listed.json()) as { groups: unknown[] }).groups).toHaveLength(2);
 
   const added = await request(`/api/admin/access-groups/${group.id}/members`, {
     method: "POST",
@@ -133,7 +141,7 @@ test("only the instance admin can manage access groups", async () => {
   const missing = await request("/api/admin/access-group-restrictions", {
     method: "POST",
     token: adminToken,
-    body: { integration: "github", name: "missing", group: group.id },
+    body: { integration: "github", name: "missing", groups: [group.id] },
   });
   expect(missing.status).toBe(404);
 
@@ -144,7 +152,7 @@ test("only the instance admin can manage access groups", async () => {
       await request("/api/admin/access-group-toolkit-restrictions", {
         method: "POST",
         token: memberToken,
-        body: { toolkitId: "tk_x", group: group.id },
+        body: { toolkitId: "tk_x", groups: [group.id] },
       })
     ).status,
   ).toBe(403);
@@ -160,7 +168,7 @@ test("only the instance admin can manage access groups", async () => {
   const granted = await request("/api/admin/access-group-toolkit-restrictions", {
     method: "POST",
     token: adminToken,
-    body: { toolkitId: toolkit.id, group: group.id },
+    body: { toolkitId: toolkit.id, groups: [group.id, second.id] },
   });
   expect(granted.status).toBe(200);
 
@@ -168,7 +176,7 @@ test("only the instance admin can manage access groups", async () => {
     token: adminToken,
   });
   expect(((await toolkitRestrictions.json()) as { restrictions: unknown[] }).restrictions).toEqual([
-    { toolkitId: toolkit.id, slug: toolkit.slug, group: group.id },
+    { toolkitId: toolkit.id, slug: toolkit.slug, groups: [group.id, second.id] },
   ]);
 
   // Granting to a missing group or a missing toolkit is a 400 with the
@@ -178,7 +186,8 @@ test("only the instance admin can manage access groups", async () => {
       await request("/api/admin/access-group-toolkit-restrictions", {
         method: "POST",
         token: adminToken,
-        body: { toolkitId: toolkit.id, group: "grp_missing" },
+        // One unknown group rejects the whole list.
+        body: { toolkitId: toolkit.id, groups: [group.id, "grp_missing"] },
       })
     ).status,
   ).toBe(400);
@@ -187,7 +196,7 @@ test("only the instance admin can manage access groups", async () => {
       await request("/api/admin/access-group-toolkit-restrictions", {
         method: "POST",
         token: adminToken,
-        body: { toolkitId: "tk_missing", group: group.id },
+        body: { toolkitId: "tk_missing", groups: [group.id] },
       })
     ).status,
   ).toBe(400);
@@ -211,5 +220,7 @@ test("only the instance admin can manage access groups", async () => {
   });
   expect(removed.status).toBe(200);
   const after = await request("/api/admin/access-groups", { token: adminToken });
-  expect(((await after.json()) as { groups: unknown[] }).groups).toHaveLength(0);
+  expect(((await after.json()) as { groups: { id: string }[] }).groups.map((g) => g.id)).toEqual([
+    second.id,
+  ]);
 });

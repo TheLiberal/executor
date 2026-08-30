@@ -1,7 +1,8 @@
 // ---------------------------------------------------------------------------
 // Access groups — named audiences of org members that gate org-owned
-// connections. A connection carrying `access_group` is a HARD visibility
-// boundary: to a non-member it does not exist on any read or invoke surface
+// connections. A connection with one or more group grants is a HARD visibility
+// boundary for everyone outside those groups (OR semantics — membership in ANY
+// granted group suffices): to a non-member it does not exist on any read or invoke surface
 // (no distinguishable error, no existence oracle). Groups are tenant-scoped
 // first-class rows here; the hosts stay authoritative for who the members ARE
 // (names, emails) — `subject` values are the same host-auth principal ids the
@@ -50,11 +51,12 @@ export interface AccessGroupMemberInput {
 
 /** Restriction targets are always org-owned connections — restricting a
  *  personal connection is rejected (it is already invisible to everyone
- *  else), so the ref carries no owner. */
+ *  else), so the ref carries no owner. `groups` REPLACES the connection's
+ *  grant set; an empty list unrestricts it. */
 export interface RestrictConnectionInput {
   readonly integration: IntegrationSlug;
   readonly name: ConnectionName;
-  readonly group: string;
+  readonly groups: readonly string[];
 }
 
 export interface UnrestrictConnectionInput {
@@ -66,7 +68,8 @@ export interface UnrestrictConnectionInput {
 export interface RestrictedConnection {
   readonly integration: IntegrationSlug;
   readonly name: ConnectionName;
-  readonly group: AccessGroupId;
+  /** Non-empty; members of ANY listed group may use the connection. */
+  readonly groups: readonly AccessGroupId[];
 }
 
 export const rowToAccessGroup = (row: AccessGroupRow): AccessGroup => ({
