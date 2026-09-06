@@ -1,0 +1,522 @@
+e2e/selfhost/mcp-browser-approval-live-role.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-174
+examples/all-plugins/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-16
+packages/core/sdk/src/shared.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 62,159,163-164
+e2e/selfhost/admin-users-console.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 37,42,97-110,134,327-358
+packages/core/sdk/src/plugin.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 51,167-176,184,191-194,201,210-218,242,254,257,262
+apps/cloud/src/mcp/auth.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 174,234-241
+apps/host-selfhost/src/system/api.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10-11,13,26-29,46-48
+  s_80d5a91f877298::t_7bd0308af40af2 49-51
+packages/plugins/mcp/src/api/group.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 7,247,255,270,278
+apps/cloud/src/edge/marketing.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 15,70-73
+  s_80d5a91f877298::t_e732cf9a3cc686 74-75
+packages/plugins/provider-service-split/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10
+packages/kernel/runtime-workerd-subprocess/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/drizzle/0016_oauth_client_token_auth.sql
+  s_80d5a91f877298::t_ceae6a6cafa656 1
+apps/cloud/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+e2e/cloud/connect-link-multi-org.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 19-21,77,138-140,146,148-159,162,175,183-184,188-189,194-197,200,205
+packages/core/config/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/hosts/cloudflare/src/mcp/session-stub.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 6,30
+apps/host-selfhost/src/config.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 21-40,76-77,197,203-257
+  s_80d5a91f877298::t_35b5f4c5b96672 258
+apps/host-selfhost/src/mcp/index.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 12,72-75,90-106,129-131
+packages/core/sdk/src/plugin-after-commit.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 8,15,53-61,75-95,148-259
+apps/local/drizzle/0006_bored_landau.sql
+  s_80d5a91f877298::t_ceae6a6cafa656 1-2
+packages/onboarding-demo/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+.github/workflows/publish-desktop.yml
+  s_80d5a91f877298::t_ceae6a6cafa656 16-28,60,65,70,75,119-123,236-238,242-243,281-283,287-335
+apps/cloud/src/auth/workos-auth-provider.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 157-158,258-259,333-334
+e2e/cloud/mcp-workspace-write-permissions.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-82
+apps/marketing/src/pages/index.astro
+  s_80d5a91f877298::t_ceae6a6cafa656 115-119
+apps/cloud/src/api.request-scope.node.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 294-295
+e2e/cloud/workspace-write-permissions.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-18
+packages/plugins/desktop-settings/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+apps/cloud/src/auth/handlers.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 123,702
+apps/cloud/src/mcp/session-durable-object.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 350-353
+packages/hosts/mcp/src/in-memory-session-store.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 2,5-6,25,110-115,126-130,133,150,162-410,580-583
+packages/core/sdk/src/oauth-helpers.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 315,324,814,821-844
+packages/core/sdk/src/oauth-register-dynamic.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 61-92
+packages/react/src/components/accounts-section.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 28,40,129-130,296-319,327-331,336,530-534,555,575-577,611-613,616,619,691-692,707-709,711-715,725-728
+packages/core/sdk/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/local/src/mcp.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 290-295
+packages/core/sdk/src/org-writes.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-376
+packages/react/src/api/atoms.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 15,575,590-592
+apps/cloud/src/analytics/google-oauth-listing.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-44
+apps/cloud/src/edge/marketing.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 17
+packages/core/api/src/policies/api.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 11-17,72,80,88
+packages/plugins/keychain/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+apps/cloud/src/api/protected-api-key-auth.node.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 101-104
+apps/cloud/src/mcp/session-meta.node.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 26-27,38-39,111,115-146,157
+packages/core/sdk/src/core-schema.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 243-247,305-312
+e2e/scenarios/graphql-introspection-health.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 181
+apps/cli/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-20
+.github/workflows/release.yml
+  s_80d5a91f877298::t_ceae6a6cafa656 150-153
+apps/local/src/identity.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 42
+packages/core/sdk/src/credential-item-reference.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-28
+packages/core/sdk/src/http-auth/authoring.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 27,73-79
+packages/plugins/mcp/src/sdk/stdio-negotiation-test-server.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 21-30
+packages/plugins/openapi/src/sdk/plugin.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 21,54-58,178,194,197,209,336-348,361-366,610-629,810,929,999,1054,1208,1323-1363
+  s_80d5a91f877298::t_90ab51b9773d9e 1364-1368
+apps/marketing/src/pages/pricing.astro
+  s_80d5a91f877298::t_ceae6a6cafa656 1-3
+apps/cloud/src/mcp/session-meta.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 31,115-131
+packages/core/sdk/src/policies.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 16-17,26,363-391,516-547
+  s_80d5a91f877298::t_e42afac1f0022e 548-549
+apps/cloud/src/analytics/google-oauth-listing.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-89
+packages/core/api/src/server/execution-stack-middleware.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 249-254
+packages/plugins/file-secrets/src/data-dir.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 86-88,90
+packages/core/execution/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/host-selfhost/src/auth/sso.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-313
+apps/host-selfhost/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-23
+apps/host-cloudflare/src/mcp/session-durable-object.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 20,130,153
+examples/docs-sdk-quickstart/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10
+scripts/publish-packages.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 276-284,289,326-327,329,332-333,337,339,343-380,433-436,438-440,442-447
+packages/core/sdk/src/org-write-access.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-33
+apps/cloud/src/auth/organization.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 91-98
+packages/hosts/mcp/src/browser-approval-store.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 17,23-26,32-33,35,42,47,49,56-57,62,64,66
+apps/cloud/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-23
+packages/plugins/toolkits/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-11
+packages/core/api/src/observability.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10-15,79-96
+  s_80d5a91f877298::t_9a8e833fd470e2 97-99
+packages/core/sdk/src/executor.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 2,40,46,96-107,124-129,151-166,414-465,526,533-545,547-551,553-568,612-618
+packages/core/sdk/src/oauth-helpers.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 22,845,853-856,919-933,939-941,1161-1168,1174,1178
+packages/hosts/cloudflare/src/mcp/role-metadata.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-21
+packages/plugins/file-secrets/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/src/api/protected-jwt-auth.node.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 122-125
+apps/host-selfhost/web/auth-client.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 2,8,11
+e2e/setup/execution-limits.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 8
+packages/plugins/mcp/src/sdk/plugin.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3,42-44,1545-1778
+examples/all-plugins/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/react/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10
+packages/hosts/mcp-apps-shell/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10
+packages/plugins/mcp/src/sdk/describe-auth-methods.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 228,232-239
+apps/cli/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/local/drizzle/0005_oauth_client_token_auth.sql
+  s_80d5a91f877298::t_ceae6a6cafa656 1
+apps/host-cloudflare/src/mcp/index.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 4-7,51-54,65
+packages/core/sdk/src/connections.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 63,116-136,144-149,156-161,384-510,628-658,727-730,757-829,1319-1320,1412-1413,1489,1560,3055
+packages/react/src/components/oauth-client-form.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 6,11,19,25,73-74,77-83,114,120-122,126-132,186,188-189,199-203,205-207,212-215,273,379,588-637,770,780
+apps/local/src/db/executor-schema.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 40,76-77
+apps/host-selfhost/src/multi-user.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 45-46,139-141,152-177,212-213,219-221
+packages/hosts/mcp/src/envelope.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 13,25-26,43,46-61
+  s_80d5a91f877298::t_7334c913a76dbf 62
+packages/plugins/keychain/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+e2e/selfhost/oauth-app-modal.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3-5,99,114-118
+packages/core/sdk/src/core-tools.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 143-147
+packages/core/sdk/src/http-auth/authoring.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 97-108
+.github/workflows/publish-executor-package.yml
+  s_80d5a91f877298::t_ceae6a6cafa656 86-89,96,98-102,106-113
+packages/core/vite-plugin/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/hosts/cloudflare/src/mcp/agent-session-durable-object.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 18,23-26,58,62,86-88,99-103,138,171-181,188-189,208-212,345-346,642-664,1420-1422,1444-1445,1725,1742-1745,2131,2135-2136,2138,2160-2163,2175,2184,2187-2190,2194-2196,2203,2205,2214-2215
+packages/plugins/file-secrets/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/plugins/openapi/src/api/group.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10,37,49
+e2e/cloud/credential-write-durability.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 528-533,535-537
+packages/hosts/mcp-apps-shell/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/react/src/multiplayer/use-admin-nav.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 5-10,46-51
+  s_80d5a91f877298::t_eb0f9c31aa603d 52-53
+apps/desktop/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/src/db/executor-schema.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 93,136-137
+apps/cloud/src/engine/execution-stack-metered.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 29,38-39,53-59,63
+packages/core/sdk/src/credential-item-reference.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-39
+packages/kernel/core/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+e2e/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/src/engine/first-party-oauth-clients.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10-12,16-17,294-300
+.github/workflows/graph-slices.yml
+  s_80d5a91f877298::t_ceae6a6cafa656 22
+apps/host-selfhost/src/mcp/mcp.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 21-31,41-58,61,63,75-86,88-90,96,100-110,219-357
+apps/host-selfhost/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3,55
+apps/host-cloudflare/src/mcp/agent-handler.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 7-8,20,84,147-156
+packages/core/cli/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/hosts/mcp/src/index.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 24-26
+packages/kernel/core/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-4
+apps/cloud/src/extensions/billing/plans.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 41-65
+packages/core/sdk/src/test-config.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 137-140,180
+packages/plugins/encrypted-secrets/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/plugins/graphql/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-57
+packages/core/sdk/src/oauth-remove-client.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 285-288,312,329,345,350,366,370,394,408,473,496
+packages/core/api/src/server/mcp-build.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 51-54
+packages/react/src/plugins/connection-owner.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 7,71-90,131-132
+apps/host-selfhost/src/testing/test-app.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 92-93,131-132
+packages/core/execution/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10
+packages/plugins/graphql/src/api/group.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3-7,94
+packages/react/src/components/oauth-client-form.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 7-8,12-15,121-166
+apps/host-selfhost/src/auth/better-auth.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3-10,19,176-183,218-237,256-277
+packages/core/sdk/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-55
+.github/workflows/pkg-pr-new.yml
+  s_80d5a91f877298::t_ceae6a6cafa656 39
+packages/core/sdk/src/errors.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 152-177
+packages/core/sdk/src/api-errors.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 12-13,19-20
+packages/core/sdk/src/oauth-first-party.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 327-365,372-378
+packages/hosts/mcp/src/tool-server.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1114-1120,1122-1125,1144-1149,1982-1986
+packages/plugins/openapi/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-59
+apps/host-selfhost/src/admin/require-admin.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 77-80,82
+packages/core/sdk/src/executor.ts
+  s_80d5a91f877298::t_12b90b162c81af 4729
+  s_80d5a91f877298::t_5640a84352dce4 4745-4746
+  s_80d5a91f877298::t_ceae6a6cafa656 24,26,76-86,109,162-167,388,391-394,419,432,445,448,453,495-503,866-888,1209-1212,1235-1240,1960-1974,2040-2044,2054-2058,2274,2468-2472,2474-2483,2544-2549,2580-2583,2604-2606,2648-2650,2659-2667,2670-2684,2688,2744,2898-2902,3012-3019,3122-3155,3201-3206,3234-3236,3242-3246,3260,3267-3271,3286-3288,3306-3310,3323-3344,3349,3358-3361,3364,3372,3376,3397-3401,3444,3457-3468,3530-3534,3794,3798,3825-3826,3828-3854,3867-3883,3891-3894,3903,3909,3943-3948,3950-3957,3960,3964-3976,4000-4008,4020,4031,4056-4058,4061-4081,4084-4192,4194-4284,4286-4301,4304-4310,4312-4320,4322-4323,4327-4341,4356,4369-4374,4412-4414,4421-4476,4485-4486,4490,4503-4512,4514-4554,4557,4561-4653,4667-4668,4673,4725-4728,4730-4744,4747,4749-4752,4756,4759,4806,4809,4827-4830,5189-5192,5199,5216-5221,5234-5237,5265-5267,5276,5389-5394,5701-5703,6048-6067,6069-6070,6072-6094,6098-6130,6132-6141,6440-6442,6460-6462,6517-6519,6521-6524,6534-6536,6989-6995,7052,7054,7066-7084,7148,7354-7356
+packages/core/sdk/src/index.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 40,79,329,333-334,461-467
+packages/core/api/src/server/execution-stack.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 30,115-120,131-140
+packages/plugins/example/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/react/src/components/accounts-section.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-12
+packages/plugins/openapi/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/react/src/plugins/secret-form.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 11,19,77-90,184
+apps/cloud/src/mcp/auth-provider.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 25,77-78,167-174
+packages/core/api/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/plugins/example/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+e2e/cloud/mcp-session-cap-eviction.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 150-155,164
+packages/core/cli/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/core/sdk/src/oauth-service.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 17,22,24-35,55,70,74-78,131-136,214-215,221-224,550,654,879,890,892-901,912-913,915-916,926-944,947-1003,1006-1111,1129-1132,1143,1154-1166,1198-1201,1391-1394,1396,1480-1498,1506-1508,1515-1532,1534-1557,1594-1604,1614-1625,1636,1648,1650-1653,1780,1802-1808,1933-1939,2081-2084,2219-2226,2270-2272,2293,2295-2298,2343-2348,2385,2387,2412-2415
+packages/plugins/mcp/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-57
+packages/hosts/cloudflare/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3,19-21
+  s_80d5a91f877298::t_140a3754efe040 22
+packages/react/src/components/add-account-modal.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 55,59,1410-1411,1415-1418,1420-1428,1892-1894,2749,2831-2833
+apps/host-selfhost/src/auth/identity.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 5-6,31-52,68-69,76-78,82,84,87,98-107,121-122
+packages/plugins/openapi/src/sdk/plugin.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 27,59-73,516-565,1370-1394
+  s_80d5a91f877298::t_00e3089f7051aa 1395-1396
+packages/core/sdk/src/oauth-flow.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 267-391
+packages/core/execution/src/engine.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 2-10,12,97-233,253-257,303-307,326-329,406-408
+apps/local/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-29
+packages/hosts/cloudflare/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-12
+packages/react/src/lib/admin-access.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3-11,61-79
+  s_80d5a91f877298::t_487f020190b347 80
+packages/core/api/src/observability.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10-11,74,77-78,101-106
+apps/host-selfhost/web/auth-config.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-29
+apps/desktop/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-4
+packages/core/config/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/host-cloudflare/src/auth/cloudflare-access.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3-4,39-41,57-59
+e2e/cloud/admin-users.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 7-8,99-100
+packages/onboarding-demo/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-12
+packages/plugins/graphql/src/sdk/describe-auth-methods.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 167,175-182
+packages/core/api/src/server/identity.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 31,53-76
+  s_80d5a91f877298::t_2d0a11b554dbc2 77
+packages/plugins/mcp/src/react/McpSignInButton.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 15,38,82-84
+packages/kernel/runtime-workerd-subprocess/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/react/src/plugins/secret-form.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-22
+packages/plugins/toolkits/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/src/engine/first-party-oauth-clients.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 2,103,113,117,119-123
+packages/plugins/graphql/src/sdk/invocation-timeout.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 84
+packages/plugins/encrypted-secrets/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/core/sdk/src/credential-compensation.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-45
+packages/hosts/cloudflare/src/mcp/agent-session-model-resume.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 275
+e2e/cloud/integrations-api.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 274,331
+packages/core/api/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-56
+packages/hosts/mcp/src/in-memory-session-store.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 6,23,26,28,316-319,324,330-353,376,383,455-467,572-577
+packages/plugins/provider-service-split/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/plugins/desktop-settings/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/src/mcp/agent-handler.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 8-9,22,187,296-305
+examples/docs-sdk-quickstart/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/plugins/graphql/src/sdk/plugin.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 20,124-138,148,156,160-182,353,367-403
+  s_80d5a91f877298::t_bdb868448076fd 404
+packages/plugins/onepassword/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/core/sdk/src/credential-compensation.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-73
+e2e/cloud/admin-users-console.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 12-14,42,47,55-60,62,67,101,103-107,112-113,123-134,212,222,232,306-308,311,338-356,403-434
+packages/kernel/runtime-quickjs/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/react/src/lib/admin-access.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 47-54
+packages/core/analytics/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/core/sdk/src/oauth-client.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 5,41-62,137-138,228-231,246-253,299-300,512,517-520,532,535,538-541
+packages/core/api/src/integrations/api.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 22,142,149,182
+apps/cloud/drizzle/0017_lush_thunderbolts.sql
+  s_80d5a91f877298::t_ceae6a6cafa656 1-2
+e2e/cloud/integrations-refresh.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 106
+packages/react/src/plugins/connection-owner.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 4,6,39-72
+packages/react/src/pages/integration-detail.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 684-688
+e2e/selfhost/workspace-write-permissions.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-22
+apps/host-selfhost/web/login.tsx
+  s_80d5a91f877298::t_ceae6a6cafa656 1,8,12-16,32-42,57-72,126-146
+packages/hosts/mcp/src/seams.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 4-5,41,53-68,72-88
+  s_80d5a91f877298::t_75c1963654f1ad 89
+e2e/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-14
+packages/plugins/graphql/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/core/sdk/src/provider.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 33-36
+apps/cloud/src/mcp/auth-provider.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 110-111
+packages/kernel/runtime-quickjs/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/plugins/mcp/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/core/api/src/server/scoped-executor.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 256-262,325
+apps/cloud/src/engine/execution-rate-limit.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 11-17,52
+e2e/cloud/connection-modal-oauth-abandon.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 105-108,110
+packages/core/execution/src/engine.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1,12,53,104-107,371-374,418-421,435-439,575-581,620-625,628-633,657-659,667,685,722-725,761-763,771-776,786-796
+apps/host-selfhost/src/mcp/auth.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 14,209-226,238-239
+packages/core/sdk/src/oauth-list-clients.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 63,95,113-136
+  s_80d5a91f877298::t_b6be6164f764d8 137-140
+packages/core/vite-plugin/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-9
+packages/react/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/core/api/src/handlers/oauth.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 106
+e2e/scenarios/openapi-update-spec.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 22-23,102-127,134,138,186-188
+apps/host-cloudflare/src/auth/cloudflare-access.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 50-51,83-84
+packages/core/analytics/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+packages/core/api/src/connections/api.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 26,204,220,227,234
+packages/plugins/graphql/src/sdk/plugin.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 22,846-848,913,961,1059
+packages/core/api/src/oauth/api.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 31,34,71,122,282,289,303,310,317
+e2e/src/workspace-write-permissions.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-469
+apps/host-selfhost/src/system/handlers.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 9,44-50
+  s_80d5a91f877298::t_aeacd00d401f0e 51-52
+packages/plugins/onepassword/CHANGELOG.md
+  s_80d5a91f877298::t_ceae6a6cafa656 3-11
+packages/core/sdk/src/fuma-runtime.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 10-21,56-60,194,237-247,256,261-290,362-388
+packages/hosts/cloudflare/src/mcp/agent-session-durable-object.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 3,11,16-17,143-153,175-183,274,283-284,308-339,355,390-409,475,482,512,555,802,1106
+packages/plugins/mcp/src/sdk/plugin.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 28,421-454,669,884-886,1258,1264-1265,1277-1286,2092,2094-2096,2099-2102,2112,2116
+packages/hosts/mcp/src/tool-server.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 23-29,76,282-283,286-291,875-877,880-882,1205-1208,1211-1214,1487,1493,1514-1515,1517-1522,1557,1584-1585,1620,1637-1638,1689,2141-2145,2210-2214,2232,2257,2288,2313
+packages/plugins/openapi/src/sdk/describe-auth-methods.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 16-17,104-112,122
+packages/core/sdk/src/testing/oauth-test-server.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 63,261-262,264-265,572,793-797
+  s_80d5a91f877298::t_14b053cc5c7b3e 798
+apps/cli/src/release.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 8-9,11-12,37-38,41-42,46-60,63-70,251,277-353,367-375,377-382,384-397,406,416-418
+  s_80d5a91f877298::t_5f9a572b9087c6 419
+apps/cloud/src/account/organization-limits.node.test.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 5,26-55
+  s_80d5a91f877298::t_f03b18c7ab99ba 56
+apps/host-selfhost/src/auth/sso.ts
+  s_80d5a91f877298::t_ceae6a6cafa656 1-46
+apps/local/package.json
+  s_80d5a91f877298::t_ceae6a6cafa656 3
+apps/cloud/drizzle/meta/0017_snapshot.json
+  s_80d5a91f877298::t_2afb453752a494 1-1640
+apps/cloud/drizzle/meta/0018_snapshot.json
+  s_80d5a91f877298::t_79649e68d8e764 1-1652
+apps/local/drizzle/meta/0005_snapshot.json
+  s_80d5a91f877298::t_bd1004317c0b9e 1-934
+apps/local/drizzle/meta/0006_snapshot.json
+  s_80d5a91f877298::t_cd2376bbf757cf 1-948
+apps/local/drizzle/meta/_journal.json
+  s_80d5a91f877298::t_74968c0322b6b2 39-52
+bun.lock
+  s_80d5a91f877298::t_8028bb4cd76bcc 35,64,137,224,260,277,357,392,411,468,484,501,522,543,609,662,682,723,761,834,854,869,893,906,921,944,961,1000,1019,1063,1096,1137,1154,1223
+apps/cloud/drizzle/meta/_journal.json
+  s_80d5a91f877298::t_89300058c566a0 123-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1fdbbcad535cb2ab014483d3c745661c4c13b8e3",
+  "prompts": {},
+  "sessions": {
+    "s_80d5a91f877298": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a05310-66d8-7430-87d7-f8a3c6ad7879",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
