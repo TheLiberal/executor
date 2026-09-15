@@ -254,11 +254,17 @@ const executeText = (
 // well-known first, then the origin-scoped fallback.
 // ---------------------------------------------------------------------------
 
-const buildResourceMetadataUrls = (resourceUrl: string): string[] => {
+export const buildResourceMetadataUrls = (resourceUrl: string): string[] => {
   const url = new URL(resourceUrl);
   const origin = `${url.protocol}//${url.host}`;
   const path = url.pathname.replace(/\/+$/, "");
   const urls: string[] = [];
+  if (origin === "https://mcp.axiom.co" && (path === "/mcp" || path === "/sse")) {
+    return [
+      `${origin}/.well-known/oauth-protected-resource`,
+      `${origin}/.well-known/oauth-protected-resource${path}`,
+    ];
+  }
   if (path && path !== "/") {
     urls.push(`${origin}/.well-known/oauth-protected-resource${path}`);
   }

@@ -5,6 +5,7 @@ import { HttpServerResponse } from "effect/unstable/http";
 import {
   OAuthDiscoveryError,
   beginDynamicAuthorization,
+  buildResourceMetadataUrls,
   canonicalResourceUrl,
   discoverAuthorizationServerMetadata,
   discoverProtectedResourceMetadata,
@@ -77,6 +78,30 @@ const withOAuthFixture = <A, E>(
       return yield* use(fixture);
     }),
   );
+
+describe("Axiom protected resource discovery", () => {
+  it.each(["/mcp", "/mcp/", "/sse", "/mcp?org-id=example"])(
+    "uses the accepted root resource metadata for %s",
+    (path) => {
+      expect(buildResourceMetadataUrls(`https://mcp.axiom.co${path}`)[0]).toBe(
+        "https://mcp.axiom.co/.well-known/oauth-protected-resource",
+      );
+    },
+  );
+
+  it.each([
+    "https://mcp.example.com/mcp",
+    "https://mcp.axiom.co.example.com/mcp",
+    "http://mcp.axiom.co/mcp",
+    "https://mcp.axiom.co:8443/mcp",
+    "https://mcp.axiom.co/other",
+  ])("preserves path-specific discovery for %s", (resource) => {
+    const url = new URL(resource);
+    expect(buildResourceMetadataUrls(resource)[0]).toBe(
+      `${url.origin}/.well-known/oauth-protected-resource${url.pathname}`,
+    );
+  });
+});
 
 describe("canonicalResourceUrl", () => {
   it("lowercases scheme + host, drops trailing slash, fragment, and query", () => {
