@@ -1,0 +1,24 @@
+apps/cloud/src/db/org-deletion.test.ts
+  s_705c81be7ed9ad::t_6920ca98bdd697 204-205
+  s_705c81be7ed9ad::t_9fb5eae81deb63 163-176
+  s_705c81be7ed9ad::t_fe519fb63d99c1 31-32
+apps/cloud/src/db/org-deletion.ts
+  s_705c81be7ed9ad::t_dd0317216a38b5 19-20
+  s_705c81be7ed9ad::t_dc1e7839333ba0 57-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "b6bbbacaadb022bf9e6414609ac3a996a666f1d0",
+  "prompts": {},
+  "sessions": {
+    "s_705c81be7ed9ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d7f7163e-575d-406f-a25d-943097f562b0",
+        "model": "claude-fable-5"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}

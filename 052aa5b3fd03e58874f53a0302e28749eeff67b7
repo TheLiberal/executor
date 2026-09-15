@@ -1,0 +1,26 @@
+.railway/README.md
+  s_221dac338978c1::t_aad5832a497684 1-54
+.railway/railway.ts
+  s_221dac338978c1::t_aad5832a497684 2-3,15-16,18-20,22-23
+  s_221dac338978c1::t_ac05ac01222284 1,4-14,17,21
+bun.lock
+  s_221dac338978c1::t_d86719f86231b8 27,2286,5064-5065,6130
+package.json
+  s_221dac338978c1::t_8d88508774fba7 93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "052aa5b3fd03e58874f53a0302e28749eeff67b7",
+  "prompts": {},
+  "sessions": {
+    "s_221dac338978c1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a04e1f-e5d2-7a43-8484-c46d5e049ec6",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
