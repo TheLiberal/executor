@@ -1,0 +1,23 @@
+apps/cloud/src/access-groups/handlers.ts
+  s_342aafb42a4ae0::t_bb9fa55d2d36e6 63-68,92-97,122-127
+apps/cloud/src/api/layers.ts
+  s_342aafb42a4ae0::t_7bb280bdfd47b5 5-9,13-14,36-39,45-47,71-73,87-89,99-101,145-147
+apps/host-selfhost/src/admin/access-groups-handlers.ts
+  s_342aafb42a4ae0::t_d9aa42469f33da 61-66,90-95,127-132
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5d82704a1f0e6a8f3eba1d272eab9793e928368c",
+  "prompts": {},
+  "sessions": {
+    "s_342aafb42a4ae0": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a0c39f-750c-71b9-b7e0-2d1dc898d301",
+        "model": "deepseek-v4.1-flash"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
