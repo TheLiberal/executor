@@ -74,7 +74,8 @@ export const makeSelfHostApp = async (options: MakeSelfHostAppOptions = {}) => {
   // ---- auth providers ---------------------------------------------------
   // Better Auth: cookie/bearer/api-key identity + /api/auth handler + account
   // API + MCP OAuth seam, all over the shared libSQL handle.
-  const { identityLayer, authHandler, betterAuth } = await resolveAuthProviders(dbHandle);
+  const { identityLayer, memberDirectoryLayer, authHandler, betterAuth } =
+    await resolveAuthProviders(dbHandle);
 
   // ---- the in-process MCP serving seams (+ shutdown hook) ----------------
   const mcp = makeSelfHostMcpSeams(dbHandle, betterAuth, config);
@@ -131,7 +132,12 @@ export const makeSelfHostApp = async (options: MakeSelfHostAppOptions = {}) => {
         // Tenant-wide admin users API (/api/admin/users*): the owner's view of
         // who uses this instance and what they've connected. Owner/admin-gated,
         // same as the invite routes above.
-        makeSelfHostAdminUsersApiLayer({ betterAuth, db: dbHandle, mountPrefix: "/api" }),
+        makeSelfHostAdminUsersApiLayer({
+          betterAuth,
+          memberDirectory: memberDirectoryLayer,
+          db: dbHandle,
+          mountPrefix: "/api",
+        }),
         // Admin-only access-group management (/api/admin/access-groups*):
         // which org connections are restricted to which member groups.
         makeSelfHostAccessGroupsApiLayer({ betterAuth, db: dbHandle, mountPrefix: "/api" }),
@@ -145,11 +151,14 @@ export const makeSelfHostApp = async (options: MakeSelfHostAppOptions = {}) => {
     // The boot-scoped context provideMerge'd under everything: the long-lived DB
     // handle (read by the DbProvider seam, Better Auth, and the MCP store) + the
     // resolved identity (captured once by the execution middleware + MCP auth)
+    // + the member directory (the shared membership read seam, boot-scoped
+    // beside identity because Better Auth's handle is an app singleton)
     // + the artifact-usage observer (this HTTP plane is the console UI's data
     // layer, so operations it serves file as `via: "ui"`).
     boot: Layer.mergeAll(
       Layer.succeed(SelfHostDb)(dbHandle),
       identityLayer,
+      memberDirectoryLayer,
       Layer.succeed(ArtifactUsageObserver)((action) =>
         selfHostAnalytics.record(`artifact_${action}`, { via: "ui" }),
       ),

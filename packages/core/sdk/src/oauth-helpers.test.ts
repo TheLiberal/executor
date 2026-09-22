@@ -25,6 +25,7 @@ import {
   idTokenIdentityLabel,
   isPermanentTokenRejection,
   isUnusableSuccessTokenResponse,
+  optionalScopesFromAuthorizationUrl,
   refreshAccessToken,
   shouldRefreshToken,
 } from "./oauth-helpers";
@@ -44,6 +45,11 @@ type TokenHandler = (call: TokenCall) => HttpServerResponse.HttpServerResponse;
 
 const json = (status: number, body: unknown): HttpServerResponse.HttpServerResponse =>
   HttpServerResponse.jsonUnsafe(body, { status });
+
+/** A JSON-format token request carried a `scope`, without narrowing `unknown`
+ *  for every handler that only needs to branch on its presence. */
+const hasJsonScope = (body: unknown): boolean =>
+  typeof body === "object" && body !== null && "scope" in body;
 
 const serveTokenEndpoint = (handler: TokenHandler) =>
   Effect.gen(function* () {
@@ -188,16 +194,33 @@ describe("PKCE", () => {
 // buildAuthorizationUrl
 // ---------------------------------------------------------------------------
 
-describe("providerAuthorizeExtras (Google offline/consent quirk)", () => {
+describe("providerAuthorizeExtras (provider authorization quirks)", () => {
   it("adds access_type=offline + prompt=consent for the Google authorize host", () => {
     expect(providerAuthorizeExtras("https://accounts.google.com/o/oauth2/v2/auth")).toEqual({
       access_type: "offline",
       prompt: "consent",
     });
   });
-  it("adds nothing for non-Google hosts or an unparseable URL (token host ≠ authorize host)", () => {
+
+  it("adds optional_scope for workspace-owned HubSpot OAuth clients", () => {
+    expect(providerAuthorizeExtras("https://app.hubspot.com/oauth/authorize")).toEqual({
+      optional_scope: "content crm.objects.custom.read crm.schemas.custom.read",
+    });
+  });
+
+  it("reads integration-declared optional_scope values from an authorization URL", () => {
+    expect(
+      optionalScopesFromAuthorizationUrl(
+        "https://app.hubspot.com/oauth/authorize?optional_scope=crm.objects.contacts.read+crm.objects.contacts.write+crm.objects.contacts.read",
+      ),
+    ).toEqual(["crm.objects.contacts.read", "crm.objects.contacts.write"]);
+    expect(optionalScopesFromAuthorizationUrl("not a url")).toEqual([]);
+  });
+
+  it("adds nothing for unrelated hosts, token hosts, or an unparseable URL", () => {
     expect(providerAuthorizeExtras("https://accounts.spotify.com/authorize")).toEqual({});
     expect(providerAuthorizeExtras("https://oauth2.googleapis.com/token")).toEqual({});
+    expect(providerAuthorizeExtras("https://api.hubapi.com/oauth/v3/token")).toEqual({});
     expect(providerAuthorizeExtras("not a url")).toEqual({});
   });
 });
@@ -598,6 +621,7 @@ describe("exchangeAuthorizationCode", () => {
   it.effect("uses nested granted scopes for Slack-style user token responses", () =>
     withTokenEndpoint(
       tokenResponse({
+        ok: true,
         access_token: "xoxp-user-token",
         token_type: "Bearer",
         scope: "",
@@ -1461,6 +1485,138 @@ describe("refreshAccessToken", () => {
     ),
   );
 
+  // Railway (issue #1969, 2026-09-09) refuses any scope-bearing refresh with
+  // `invalid_scope: refresh token missing requested scope` even though echoing
+  // the grant's own scope is legal under RFC 6749 §6. Without the fallback a
+  // live refresh token reads as permanently dead and the connection can never
+  // recover on its own.
+  it.effect("retries without scope when the AS refuses the echoed grant scope", () =>
+    withTokenEndpoint(
+      (call) =>
+        call.body.has("scope")
+          ? json(400, {
+              error: "invalid_scope",
+              error_description: "refresh token missing requested scope",
+            })
+          : json(200, validRefreshBody),
+      ({ tokenUrl, calls }) =>
+        Effect.gen(function* () {
+          const result = yield* refreshAccessToken({
+            tokenUrl,
+            clientId: "cid",
+            refreshToken: "old",
+            scopes: ["issues.read", "issues.write"],
+          });
+
+          expect(result.access_token).toBe("tok2");
+          const seen = yield* calls;
+          expect(seen).toHaveLength(2);
+          expect(seen[0]!.body.get("scope")).toBe("issues.read issues.write");
+          expect(seen[1]!.body.has("scope")).toBe(false);
+          expect(seen[1]!.body.get("grant_type")).toBe("refresh_token");
+          expect(seen[1]!.body.get("refresh_token")).toBe("old");
+        }),
+    ),
+  );
+
+  it.effect("retries a JSON-format refresh without scope as well", () =>
+    withTokenEndpoint(
+      (call) =>
+        hasJsonScope(call.jsonBody)
+          ? json(400, {
+              error: "invalid_scope",
+              error_description: "refresh token missing requested scope",
+            })
+          : json(200, validRefreshBody),
+      ({ tokenUrl, calls }) =>
+        Effect.gen(function* () {
+          const result = yield* refreshAccessToken({
+            tokenUrl,
+            clientId: "cid",
+            clientSecret: "csecret",
+            refreshToken: "old",
+            scopes: ["issues.read"],
+            requestFormat: "json",
+          });
+
+          expect(result.access_token).toBe("tok2");
+          const seen = yield* calls;
+          expect(seen).toHaveLength(2);
+          expect(seen[0]!.jsonBody).toEqual({
+            grant_type: "refresh_token",
+            refresh_token: "old",
+            scope: "issues.read",
+            client_id: "cid",
+            client_secret: "csecret",
+          });
+          expect(seen[1]!.jsonBody).toEqual({
+            grant_type: "refresh_token",
+            refresh_token: "old",
+            client_id: "cid",
+            client_secret: "csecret",
+          });
+        }),
+    ),
+  );
+
+  it.effect("does not retry a scope-less refresh the AS refuses", () =>
+    withTokenEndpoint(
+      () => json(400, { error: "invalid_scope", error_description: "scope is required" }),
+      ({ tokenUrl, calls }) =>
+        Effect.gen(function* () {
+          const error = yield* Effect.flip(
+            refreshAccessToken({ tokenUrl, clientId: "cid", refreshToken: "old" }),
+          );
+
+          expect((error as OAuth2Error).error).toBe("invalid_scope");
+          expect(yield* calls).toHaveLength(1);
+        }),
+    ),
+  );
+
+  it.effect("does not retry invalid_grant, which no scope change can fix", () =>
+    withTokenEndpoint(
+      () => json(400, { error: "invalid_grant", error_description: "refresh token expired" }),
+      ({ tokenUrl, calls }) =>
+        Effect.gen(function* () {
+          const error = yield* Effect.flip(
+            refreshAccessToken({
+              tokenUrl,
+              clientId: "cid",
+              refreshToken: "old",
+              scopes: ["issues.read"],
+            }),
+          );
+
+          expect((error as OAuth2Error).error).toBe("invalid_grant");
+          expect(yield* calls).toHaveLength(1);
+        }),
+    ),
+  );
+
+  it.effect("surfaces the scope-less retry's verdict when the AS refuses that too", () =>
+    withTokenEndpoint(
+      (call) =>
+        call.body.has("scope")
+          ? json(400, { error: "invalid_scope", error_description: "refresh token missing scope" })
+          : json(400, { error: "invalid_grant", error_description: "refresh token expired" }),
+      ({ tokenUrl, calls }) =>
+        Effect.gen(function* () {
+          const error = yield* Effect.flip(
+            refreshAccessToken({
+              tokenUrl,
+              clientId: "cid",
+              refreshToken: "old",
+              scopes: ["issues.read"],
+            }),
+          );
+
+          expect((error as OAuth2Error).error).toBe("invalid_grant");
+          expect(yield* calls).toHaveLength(2);
+        }),
+    ),
+  );
+
   it.effect("includes RFC 8707 resource parameter on refresh requests when provided", () =>
     withTokenEndpoint(tokenResponse(validRefreshBody), ({ tokenUrl, calls }) =>
       Effect.gen(function* () {
@@ -1682,4 +1838,156 @@ describe("OAuth2Error tagging", () => {
       cause: { foo: 1 },
     });
   });
+});
+
+// Slack labels bearer credentials by actor type. The same envelope is used
+// during authorization-code exchange and refresh-token rotation.
+describe("Provider token envelopes", () => {
+  const grants = [
+    {
+      label: "standard bearer response with ok metadata",
+      body: {
+        ok: true,
+        access_token: "provider-token",
+        token_type: "Bearer",
+        scope: "scope,with-comma other.scope",
+      },
+      expected: {
+        access_token: "provider-token",
+        token_type: "bearer",
+        scope: "scope,with-comma other.scope",
+      },
+    },
+    {
+      // https://docs.slack.dev/reference/methods/oauth.v2.access/
+      // A single response can contain two distinct accounts and refresh tokens.
+      label: "Slack bot and user response",
+      body: {
+        ok: true,
+        access_token: "bot-token",
+        token_type: "bot",
+        scope: "commands,incoming-webhook",
+        expires_in: 43200,
+        refresh_token: "bot-refresh",
+        authed_user: {
+          access_token: "user-token",
+          token_type: "user",
+          scope: "chat:write",
+          expires_in: 43200,
+          refresh_token: "user-refresh",
+        },
+      },
+      expected: {
+        access_token: "bot-token",
+        token_type: "bearer",
+        scope: "commands incoming-webhook",
+        expires_in: 43200,
+        refresh_token: "bot-refresh",
+      },
+    },
+    {
+      label: "bot",
+      body: {
+        ok: true,
+        access_token: "bot-token",
+        token_type: "bot",
+        scope: "channels:read,chat:write",
+        refresh_token: "bot-refresh",
+        expires_in: 3600,
+      },
+      expected: {
+        access_token: "bot-token",
+        token_type: "bearer",
+        scope: "channels:read chat:write",
+        refresh_token: "bot-refresh",
+        expires_in: 3600,
+      },
+    },
+    {
+      label: "user",
+      body: {
+        ok: true,
+        access_token: "user-token",
+        token_type: "user",
+        scope: "users:read,users:read.email",
+        refresh_token: "user-refresh",
+        expires_in: 3600,
+      },
+      expected: {
+        access_token: "user-token",
+        token_type: "bearer",
+        scope: "users:read users:read.email",
+        refresh_token: "user-refresh",
+        expires_in: 3600,
+      },
+    },
+    {
+      label: "nested user",
+      body: {
+        ok: true,
+        authed_user: {
+          access_token: "nested-user-token",
+          token_type: "user",
+          scope: "users:read,chat:write",
+          refresh_token: "nested-refresh",
+          expires_in: 3600,
+        },
+      },
+      expected: {
+        access_token: "nested-user-token",
+        token_type: "bearer",
+        scope: "users:read chat:write",
+        refresh_token: "nested-refresh",
+        expires_in: 3600,
+      },
+    },
+  ];
+  for (const grant of grants) {
+    it.effect(`exchanges a ${grant.label} grant`, () =>
+      withTokenEndpoint(tokenResponse(grant.body), ({ tokenUrl }) =>
+        Effect.gen(function* () {
+          const result = yield* exchangeAuthorizationCode({
+            tokenUrl,
+            clientId: "cid",
+            clientSecret: "secret",
+            redirectUrl: "https://app.example/callback",
+            codeVerifier: "verifier",
+            code: "code",
+          });
+          expect(result).toMatchObject(grant.expected);
+        }),
+      ),
+    );
+    it.effect(`refreshes a ${grant.label} grant`, () =>
+      withTokenEndpoint(tokenResponse(grant.body), ({ tokenUrl }) =>
+        Effect.gen(function* () {
+          const result = yield* refreshAccessToken({
+            tokenUrl,
+            clientId: "cid",
+            clientSecret: "secret",
+            refreshToken: "old-refresh",
+          });
+          expect(result).toMatchObject(grant.expected);
+        }),
+      ),
+    );
+  }
+  it.effect("still rejects unsupported token types in an otherwise successful envelope", () =>
+    withTokenEndpoint(
+      tokenResponse({ ok: true, access_token: "token", token_type: "mac" }),
+      ({ tokenUrl }) =>
+        Effect.gen(function* () {
+          const exit = yield* Effect.exit(
+            exchangeAuthorizationCode({
+              tokenUrl,
+              clientId: "cid",
+              redirectUrl: "https://app.example/callback",
+              codeVerifier: "verifier",
+              code: "code",
+            }),
+          );
+          expect(Exit.isFailure(exit)).toBe(true);
+        }),
+    ),
+  );
 });

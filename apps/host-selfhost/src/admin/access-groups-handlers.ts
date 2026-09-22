@@ -58,6 +58,12 @@ const renderEngineErrors = <A, R>(
     Effect.catchTag("StorageError", (error) =>
       Effect.fail(new AccessGroupsError({ message: error.message })),
     ),
+    Effect.catchTag("StorageConnectionError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
+    Effect.catchTag("CredentialWriteIncompleteError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
     Effect.catchTag("UniqueViolationError", () =>
       Effect.fail(new AccessGroupsError({ message: "Storage conflict" })),
     ),
@@ -79,6 +85,12 @@ const renderToolkitErrors = <A, R>(
       Effect.fail(new AccessGroupsError({ message: error.message })),
     ),
     Effect.catchTag("StorageError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
+    Effect.catchTag("StorageConnectionError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
+    Effect.catchTag("CredentialWriteIncompleteError", (error) =>
       Effect.fail(new AccessGroupsError({ message: error.message })),
     ),
     Effect.catchTag("UniqueViolationError", () =>
@@ -110,6 +122,12 @@ const withAdminExecutor = <A, E>(
 const requireGroupExists = (executor: Executor<SelfHostPlugins>, group: string) =>
   executor.accessGroups.list().pipe(
     Effect.catchTag("StorageError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
+    Effect.catchTag("StorageConnectionError", (error) =>
+      Effect.fail(new AccessGroupsError({ message: error.message })),
+    ),
+    Effect.catchTag("CredentialWriteIncompleteError", (error) =>
       Effect.fail(new AccessGroupsError({ message: error.message })),
     ),
     Effect.catchTag("UniqueViolationError", () =>

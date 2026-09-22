@@ -87,7 +87,7 @@ type GroupRow = {
 
 type MemberIdentity = {
   readonly userId: string;
-  readonly email: string;
+  readonly email: string | null;
   readonly name: string | null;
 };
 
@@ -521,7 +521,7 @@ function GroupMembersSheet(props: {
               <SelectContent>
                 {candidates.map((identity) => (
                   <SelectItem key={identity.userId} value={identity.userId}>
-                    {identity.name ?? identity.email}
+                    {identity.name ?? identity.email ?? identity.userId}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -547,7 +547,7 @@ function GroupMembersSheet(props: {
                     <p className="truncate text-sm font-medium text-foreground leading-none">
                       {identity?.name ?? identity?.email ?? member.subject}
                     </p>
-                    {identity?.name && (
+                    {identity?.name && identity.email && (
                       <p className="mt-1 truncate text-xs text-muted-foreground leading-none">
                         {identity.email}
                       </p>
