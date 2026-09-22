@@ -1,0 +1,22 @@
+packages/core/sdk/src/oauth-discovery.ts
+  s_6d7c8f5af5c351::t_10c91aab34834e 257,262-267
+packages/core/sdk/src/oauth-discovery.test.ts
+  s_6d7c8f5af5c351::t_10c91aab34834e 8,82-104
+  s_6d7c8f5af5c351::t_1637d6de345a26 105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "5fda5c8e323b4406675bf82c7b79ddddc2e2906e",
+  "prompts": {},
+  "sessions": {
+    "s_6d7c8f5af5c351": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a0a5fa-d8bc-7de2-bb36-c1160504576c",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
