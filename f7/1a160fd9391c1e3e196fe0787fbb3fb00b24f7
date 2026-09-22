@@ -1,0 +1,19 @@
+scripts/sync-upstream.sh
+  s_342aafb42a4ae0::t_a56f5bfa303882 1-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f71a160fd9391c1e3e196fe0787fbb3fb00b24f7",
+  "prompts": {},
+  "sessions": {
+    "s_342aafb42a4ae0": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a0c39f-750c-71b9-b7e0-2d1dc898d301",
+        "model": "deepseek-v4.1-flash"
+      },
+      "human_author": "Blaise Gulaj <bgulaj@gmail.com>"
+    }
+  }
+}
